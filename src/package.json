@@ -1,0 +1,16 @@
+{
+  "name": "object-data-storage-engine",
+  "version": "1.0.0",
+  "description": "object-data-storage-engine library",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^2.3.0"
+  },
+  "dependencies": {},
+  "private": true
+}
