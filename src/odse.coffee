@@ -1,3 +1,4 @@
+{ GenericUtilities } = require './generic-utilities.coffee'
 
 {
   Event
@@ -106,6 +107,9 @@ class BubbleableOdseEvent extends OdseEvent
 class OdseNode extends EventEmitter
 
   @seed: 0
+  nodeId : null
+  createdTimeStamp : null
+  lastUpdateTimeStamp : null
 
   constructor: ->
     super
@@ -116,6 +120,10 @@ class OdseNode extends EventEmitter
     @serial = OdseNode.seed++
     @parentList = []
     setImmediate => @emit 'create', { node: @ }
+
+    @nodeId = GenericUtilities.generateNodeId()
+    @createdTimeStamp = Date.now()
+    @lastUpdateTimeStamp = @createdTimeStamp
 
   _attachTo: (parentNode)->
     throw new Error "Expected <ContainerNode>" unless parentNode instanceof ContainerNode
@@ -303,7 +311,7 @@ class ArrayNode extends ContainerNode
   __resetList: ->
     for node, index in @childrenList
       node._detachFrom @
-    @childrenList = {}
+    @childrenList = []
 
   removeNode: (index)->
     throw new Error "index out of bound" unless 0 <= index < @childrenList.length

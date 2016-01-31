@@ -1,4 +1,3 @@
-
 ###
   NOTE: The following is extracted from the official 'evolvenode' module. Try not to modify anything here
   since on later releases, these classes will be loaded from evolvenode module directly.
