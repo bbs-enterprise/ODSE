@@ -1,0 +1,17 @@
+{
+  "name": "temporary-server",
+  "version": "1.0.0",
+  "description": "Temprary Server",
+  "main": "index.coffee",
+  "dependencies": {
+    "coffee-script": "*",
+    "nedb": "*",
+    "schema-engine": "*"
+  },
+  "devDependencies": {
+    "chai": "*"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register test/mocha"
+  }
+}

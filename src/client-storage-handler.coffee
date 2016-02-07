@@ -5,10 +5,14 @@ class ClientStorageHandler
   storageObj = null
 
   constructor : () ->
-    storageObj = localStorage
+    try
+      storageObj = localStorage
+    catch ex
+      storageObj = null
 
   initializeStorage : ( key ) ->
-    if GenericUtilities.isNotNull
+    a = 1
+    #if GenericUtilities.isNotNull
 
   set : ( key , value ) =>
     if ( GenericUtilities.isNotNull ( @get key ) ) is false
@@ -32,3 +36,5 @@ class ClientStorageHandler
     value = ( storageObj.getItem key )
     value = JSON.parse value
     return value
+
+@ClientStorageHandler = ClientStorageHandler

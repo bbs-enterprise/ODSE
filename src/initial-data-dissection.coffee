@@ -2,6 +2,7 @@
 { GenericUtilities } = require './generic-utilities.coffee'
 { ClientPendingSyncHandler } = require './client-pending-sync-handler.coffee'
 { TransactioNodeManager } = require './transaction-node-manager.coffee'
+{ StorageDecider } = require './storage-decider.coffee'
 
 class InitialDataDissection
 
@@ -10,14 +11,16 @@ class InitialDataDissection
   allNodeIdPathList = null
   transactioNodeManagerObj = null
 
-  run : ( jsonString , userIdParam ) =>
+  run : ( jsonString , userIdParam , cbfn ) =>
     transactioNodeManagerObj = new TransactioNodeManager()
     blobId = GenericUtilities.generateDataBlobId()
     userId = userIdParam
     allNodeIdPathList = []
     _recursiveDataBuild [] , ( JSON.parse jsonString )
-    console.log allNodeIdPathList.length
-    console.log transactioNodeManagerObj.transactionList
+
+    StorageDecider.saveBothTransactionHistoryAndNewNodeIdPathList transactioNodeManagerObj.transactionList , { blobId : blobId , allNodeIdPathList : allNodeIdPathList } , cbfn
+
+    return blobId
 
   _addNodePathViaNodeIdList = ( nodePath ) ->
     childNodeId = nodePath[ nodePath.length - 1 ]
@@ -35,7 +38,7 @@ class InitialDataDissection
       newNodeIdPathList.push currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , null
-    else if ( typeof data ).toLowerCase() is 'object' and Array.isArray data
+    else if ( typeof data ).toLowerCase() is 'object' and ( Array.isArray data )
       currentNodeObj = new ArrayNode()
       newNodeIdPathList.push currentNodeObj.nodeId
       transactioNodeManagerObj.addNewArrayNodeTransaction userId , blobId , currentNodeObj.nodeId
@@ -49,7 +52,7 @@ class InitialDataDissection
       transactioNodeManagerObj.addNewObjectNodeTransaction userId , blobId , currentNodeObj.nodeId
       for key , value of data
         currentNodeObj.addNode key , ( _recursiveDataBuild newNodeIdPathList , value )
-        transactioNodeManagerObj.objectAddTransaction userId , blobId , currentNodeObj.nodeId
+        transactioNodeManagerObj.objectAddTransaction userId , blobId , currentNodeObj.nodeId , key
       _addNodePathViaNodeIdList newNodeIdPathList
     else if ( typeof data ).toLowerCase() is 'number' or ( typeof data ).toLowerCase() is 'string' or ( typeof data ).toLowerCase() is 'symbol' or ( typeof data ).toLowerCase() is 'boolean'
       if Object.prototype.toString.call( data ) is '[object Date]'
