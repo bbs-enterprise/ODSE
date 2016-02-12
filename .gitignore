@@ -26,5 +26,5 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 src/node_modules
-src/temp/server/db/data-dump.db
-src/temp/server/node_modules
+src/server/db/data-dump.db
+src/server/node_modules

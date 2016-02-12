@@ -7,8 +7,8 @@ fsObj = require 'fs'
 class ClientOdseScriptGenerator
 
   relativeOdseScriptFolderPath = './../'
-  relativeClientCoffeeFilePath = './client/odse.coffee'
-  relativeClientJsFolderPath = './client/'
+  relativeClientCoffeeFilePath = './client/coffee/odse.coffee'
+  relativeClientJsFolderPath = './client/js/'
   requireStringPattern = 'require '
   exportStringPattern = '@' # Has to be the first character
   clientBindingPrefix = 'window.app.odse.'
@@ -169,7 +169,7 @@ class ClientOdseScriptGenerator
     sourceFilePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     destinationFolderPath = pathObj.join __dirname , relativeClientJsFolderPath
     console.log sourceFilePath , destinationFolderPath
-    cmd = 'coffee --compile ' + sourceFilePath
+    cmd = 'coffee --compile --output ' + destinationFolderPath + ' ' + sourceFilePath
     #exec cmd , _compileToJsCallback
 
   _generate = () ->
