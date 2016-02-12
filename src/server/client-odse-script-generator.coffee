@@ -17,7 +17,7 @@ class ClientOdseScriptGenerator
   coffeeFilePatternSuffix = '.coffee'
   omittedFileNameList = [ 'html-div-extraction.coffee' ]
   omittedRequireNames = [ 'http' , 'client-odse-script-generator.coffee' ]
-  removeStringPatternList = [ 'window.odse.iterate=iterate' ]
+  removeStringPatternList = []
 
   unorderedFileNameList = null
   declarationsThatNeedsToBeReplaced = null
@@ -182,6 +182,9 @@ class ClientOdseScriptGenerator
               j = i - 1
               k = i + len2
 
+              if j < 0
+                flag = false
+
               #Checks alpha-numeric characters as well as other custom defined characters. In both prefix and suffix.
               falsifiablePrefixCharacterList = _generateAllAlphaNumericCharacters().join [ '.' , '\'' , '<' , '"' , '=' ]
               for char in falsifiablePrefixCharacterList
@@ -224,25 +227,15 @@ class ClientOdseScriptGenerator
   _writeOnFile = ( fileContentList , patternList ) ->
 
 
-    cn = 7
-
-
     dataString = ''
     dataString += odseClientScriptPrefix
     for file in fileContentList
 
 
 
-      cn--
-      if cn > 0
-        continue
-
 
       for line in file
         dataString += line + '\n'
-
-      if cn < 0
-        break
 
     dataString = _removeStringFromPatternList dataString , patternList
     filePath = pathObj.join __dirname , relativeClientCoffeeFilePath

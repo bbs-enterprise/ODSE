@@ -6,17 +6,25 @@
 __inspect = (val)->
   console.log (require 'util').inspect val, depth: 30, colors: true
 
+@__inspect = __inspect
+
 class CustomError extends Error
   constructor: (@message, @cause)->
     Error.captureStackTrace(@,@)
+
+@CustomError = CustomError
 
 class DeveloperError extends CustomError
   constructor: (message, cause = null)->
     super message, cause
 
+@DeveloperError = DeveloperError
+
 class VendorError extends CustomError
   constructor: (message, cause = null)->
     super message, cause
+
+@VendorError = VendorError
 
 class ExtendedError extends Error
   constructor: (code, details, where)->
@@ -28,9 +36,4 @@ class ExtendedError extends Error
     @message = "\ncode   : #{@code}\nat     : #{@where}\ndetails: #{detailsFormatted}"
     Error.captureStackTrace(@,@)
 
-
-@__inspect = __inspect
-@CustomError = CustomError
-@DeveloperError = DeveloperError
-@VendorError = VendorError
 @ExtendedError = ExtendedError

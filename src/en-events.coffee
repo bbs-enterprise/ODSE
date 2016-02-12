@@ -124,6 +124,8 @@ class EventEmitter
 
     return @
 
+@EventEmitter = EventEmitter
+
 ###
   @class Event
 ###
@@ -284,6 +286,7 @@ class Event extends EventEmitter
   #   @_completionCallback = replacementCompletionHandler
   #   @dispatch()
 
+@Event = Event
 
 ###
   @class ErrorEvent
@@ -310,7 +313,4 @@ class ErrorEvent extends Event
     @resolution or= null
 
 
-
-@Event = Event
-@EventEmitter = EventEmitter
 @ErrorEvent = ErrorEvent
