@@ -186,11 +186,27 @@ class ClientOdseScriptGenerator
     return res
 
   _writeOnFile = ( fileContentList ) ->
+    cn = 7
+
+
     dataString = ''
     dataString += odseClientScriptPrefix
     for file in fileContentList
+
+
+
+      cn--
+      if cn > 0
+        continue
+
+
       for line in file
         dataString += line + '\n'
+
+      if cn < 0
+        break
+
+
     filePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     fsObj.writeFileSync filePath , dataString , 'utf8'
 
