@@ -7,7 +7,7 @@ class TransactioNodeListManager
       return left.createdTimeStamp - right.createdTimeStamp
     return sortedTransactionNodeList
 
-window.odse.TransactioNodeListManager=TransactioNodeListManager
+window.odse.TransactioNodeListManager =TransactioNodeListManager
 class OdseConfigs
 
   @dataBlobIdLength : 20
@@ -39,7 +39,7 @@ class OdseConfigs
   @primitiveRemoveStringConstant : 'primitive-update'
 
 
-window.odse.OdseConfigs=OdseConfigs
+window.odse.OdseConfigs =OdseConfigs
 
 class GenericUtilities
 
@@ -149,7 +149,7 @@ class GenericUtilities
       blobId = ( window.odse.GenericUtilities.generateRandomAlphaNumericStringWithPrefix window.odse.OdseConfigs.clientIdPrefix , ( window.odse.OdseConfigs.dataBlobIdLength - window.odse.OdseConfigs.clientIdPrefix.length ) )
     return blobId
 
-window.odse.GenericUtilities=GenericUtilities
+window.odse.GenericUtilities =GenericUtilities
 
 class TransactioNode
 
@@ -174,7 +174,7 @@ class TransactioNode
     if ( window.odse.GenericUtilities.isNotNull propertyNameParam ) is true
       @propertyName = propertyNameParam
 
-window.odse.TransactioNode=TransactioNode
+window.odse.TransactioNode =TransactioNode
 
 class ServerOdseApiCall
 
@@ -225,7 +225,7 @@ class ServerOdseApiCall
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         cbfn blobId , response.data
 
-window.odse.ServerOdseApiCall=ServerOdseApiCall
+window.odse.ServerOdseApiCall =ServerOdseApiCall
 
 class StorageDecider
 
@@ -257,7 +257,7 @@ class StorageDecider
     if window.odse.GenericUtilities.isRunningOnServer() is true
       window.odse.ServerOdseApiCall.callGetTransactionHistoryApi blobId , cbfn
 
-window.odse.StorageDecider=StorageDecider
+window.odse.StorageDecider =StorageDecider
 
 
 class Iterator
@@ -285,13 +285,13 @@ class Iterator
       @finalFn = null
       cb()
 
-window.odse.Iterator=Iterator
+window.odse.Iterator =Iterator
 
 
 iterate = (list, forEachFn) ->
   new window.odse.Iterator list, forEachFn
 
-window.odse.iterate=iterate
+window.odse.iterate =iterate
 
 
 
@@ -409,8 +409,6 @@ class EventEmitter
     eventObject.dispatch()
 
     return @
-
-window.odse.EventEmitter=EventEmitter
 
 
 class Event extends window.odse.EventEmitter
@@ -569,7 +567,6 @@ class Event extends window.odse.EventEmitter
   #   @_completionCallback = replacementCompletionHandler
   #   @dispatch()
 
-window.odse.Event=Event
 
 class ErrorEvent extends window.odse.Event
 
@@ -593,7 +590,10 @@ class ErrorEvent extends window.odse.Event
     @resolution or= null
 
 
-window.odse.ErrorEvent=ErrorEvent
+
+window.odse.Event =Event
+window.odse.EventEmitter =EventEmitter
+window.odse.ErrorEvent =ErrorEvent
 
 
 
@@ -905,21 +905,21 @@ class ObjectDataStorageEngine
     doForEachFn node if doForEachFn
     return node
 
-window.odse.OdseEvent=OdseEvent
-window.odse.BubbleableOdseEvent=BubbleableOdseEvent
+window.odse.OdseEvent =OdseEvent
+window.odse.BubbleableOdseEvent =BubbleableOdseEvent
 
-window.odse.ObjectDataStorageEngine=ObjectDataStorageEngine
-window.odse.ArrayNode=ArrayNode
-window.odse.ObjectNode=ObjectNode
-window.odse.ContainerNode=ContainerNode
-window.odse.PrimitiveNode=PrimitiveNode
-window.odse.ValueNode=ValueNode
-window.odse.OdseNode=OdseNode
+window.odse.ObjectDataStorageEngine =ObjectDataStorageEngine
+window.odse.ArrayNode =ArrayNode
+window.odse.ObjectNode =ObjectNode
+window.odse.ContainerNode =ContainerNode
+window.odse.PrimitiveNode =PrimitiveNode
+window.odse.ValueNode =ValueNode
+window.odse.OdseNode =OdseNode
 
-window.odse.CustomError=CustomError
-window.odse.VendorError=VendorError
-window.odse.DeveloperError=DeveloperError
-window.odse.ExtendedError=ExtendedError
+window.odse.CustomError =CustomError
+window.odse.VendorError =VendorError
+window.odse.DeveloperError =DeveloperError
+window.odse.ExtendedError =ExtendedError
 
 class TransactioNodeManager
 
@@ -972,7 +972,7 @@ class TransactioNodeManager
     transactioNodeObj = new window.odse.TransactioNode userId , blobId , nodeId , window.odse.OdseConfigs.primitiveRemoveStringConstant , null , null
     @processAndAddTransactionToList transactioNodeObj
 
-window.odse.TransactioNodeManager=TransactioNodeManager
+window.odse.TransactioNodeManager =TransactioNodeManager
 
 class ConstructOdseTree
 
@@ -1028,7 +1028,7 @@ class ConstructOdseTree
   getTree : () =>
     return tree
 
-window.odse.ConstructOdseTree=ConstructOdseTree
+window.odse.ConstructOdseTree =ConstructOdseTree
 
 class ClientStorageHandler
 
@@ -1067,7 +1067,7 @@ class ClientStorageHandler
     value = JSON.parse value
     return value
 
-window.odse.ClientStorageHandler=ClientStorageHandler
+window.odse.ClientStorageHandler =ClientStorageHandler
 
 class ClientPendingSyncHandler
 
@@ -1078,7 +1078,7 @@ class ClientPendingSyncHandler
     isClient = ( ! window.odse.GenericUtilities.isRunningOnServer() )
     lsObj = new window.odse.ClientStorageHandler()
 
-window.odse.ClientPendingSyncHandler=newClientPendingSyncHandler()
+window.odse.ClientPendingSyncHandler =new ClientPendingSyncHandler()
 
 class InitialDataDissection
 
@@ -1139,12 +1139,11 @@ class InitialDataDissection
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , data
     return currentNodeObj
 
-window.odse.InitialDataDissectionObj=(newInitialDataDissection())
+window.odse.InitialDataDissectionObj =( new InitialDataDissection() )
 
 class TreeMerger
 
   constructor : () ->
-    new ClientOdseScriptGenerator()
     jsonString = '[{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"button-up","classList":{"0":"button-up"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"body","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"header","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lang-chooser","classList":{"0":"lang-chooser"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox menu-box","classList":{"0":"roundbox","1":"menu-box"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lb","classList":{"0":"roundbox-lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rb","classList":{"0":"roundbox-rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"menu-list-container","classList":{"0":"menu-list-container"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"sidebar","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"socials","classList":{"0":"socials"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"fb-root","className":" fb_reset","classList":{"0":"fb_reset"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"fb-like fb_iframe_widget","classList":{"0":"fb-like","1":"fb_iframe_widget"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"personal-sidebar","classList":{"0":"personal-sidebar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"for-avatar","classList":{"0":"for-avatar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"avatar","classList":{"0":"avatar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox top-contributed","classList":{"0":"roundbox","1":"sidebox","2":"top-contributed"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox top-contributed","classList":{"0":"roundbox","1":"sidebox","2":"top-contributed"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"recent-actions","classList":{"0":"recent-actions"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"pageContent","className":"content-with-sidebar","classList":{"0":"content-with-sidebar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"second-level-menu","classList":{"0":"second-level-menu"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"leftLava","classList":{"0":"leftLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottomLava","classList":{"0":"bottomLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"cornerLava","classList":{"0":"cornerLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"datatable ratingsDatatable","classList":{"0":"datatable","1":"ratingsDatatable"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lt","classList":{"0":"lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rt","classList":{"0":"rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lb","classList":{"0":"lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rb","classList":{"0":"rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"ilt","classList":{"0":"ilt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"irt","classList":{"0":"irt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"pagination","classList":{"0":"pagination"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"footer","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"userListsFacebox","classList":{"0":"userListsFacebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"datatable","classList":{"0":"datatable"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lt","classList":{"0":"lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rt","classList":{"0":"rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lb","classList":{"0":"lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rb","classList":{"0":"rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"ilt","classList":{"0":"ilt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"irt","classList":{"0":"irt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"datepick-div","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxOverlay","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"colorbox","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxWrapper","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopCenter","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxMiddleLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxContent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadedContent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadingOverlay","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadingGraphic","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTitle","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxCurrent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxNext","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxPrevious","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxSlideshow","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxClose","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxMiddleRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomCenter","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1}]'
     jsonString = '[{"val":1,"name":"test"},{"val":2,"name":"ron"}]'
     jsonString = '{"val":1}'

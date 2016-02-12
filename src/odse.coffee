@@ -51,6 +51,8 @@ class OdseEvent extends Event
     super
     @detail = @storedData
 
+@OdseEvent = OdseEvent
+
 ###
   @class BubbleableOdseEvent
   This Event has bubbling support.
@@ -81,6 +83,7 @@ class BubbleableOdseEvent extends OdseEvent
   _nodeCompletionHandler: (e)=>
     @bubbleUp()
 
+@BubbleableOdseEvent = BubbleableOdseEvent
 
 
 
@@ -141,6 +144,8 @@ class OdseNode extends EventEmitter
       parentNode.forceRemoveChild @
     setImmediate => @emit 'remove', { node: @ }
 
+@OdseNode = OdseNode
+
 ###
   @class @abstract ValueNode
   Any Node that accepts a value inherits this one.
@@ -165,6 +170,8 @@ class ValueNode extends OdseNode
     @__setValue newValue
     setImmediate => @emit 'set', { node: @, oldValue, newValue }
 
+@ValueNode = ValueNode
+
 ###
   @class PrimitiveNode
   This node can contain any primitive value. Including -
@@ -181,6 +188,8 @@ class PrimitiveNode extends ValueNode
   getValue: ->
     return @__value
 
+@PrimitiveNode = PrimitiveNode
+
 ###
   @class @abstract
   This is the master class for container nodes. All container nodes emit an 'update' event which is registered
@@ -190,6 +199,8 @@ class ContainerNode extends ValueNode
   constructor: ->
     super
     @register BubbleableOdseEvent, 'update'
+
+@ContainerNode = ContainerNode
 
 ###
   @class ObjectNode
@@ -283,6 +294,7 @@ class ObjectNode extends ContainerNode
   hasNode: (key)->
     return (key of @childrenMap)
 
+@ObjectNode = ObjectNode
 
 ###
   @class ArrayNode
@@ -394,6 +406,8 @@ class ArrayNode extends ContainerNode
   lastIndexOf: (node)->
     return @childrenList.lastIndexOf node
 
+@ArrayNode = ArrayNode
+
 ###
   @class ObjectDataStorageEngine
   Object Data Storage Engine
@@ -412,21 +426,14 @@ class ObjectDataStorageEngine
     doForEachFn node if doForEachFn
     return node
 
+@ObjectDataStorageEngine = ObjectDataStorageEngine
+
 ###
   @exports
-###
-@OdseEvent = OdseEvent
-@BubbleableOdseEvent = BubbleableOdseEvent
 
-@ObjectDataStorageEngine = ObjectDataStorageEngine
-@ArrayNode = ArrayNode
-@ObjectNode = ObjectNode
-@ContainerNode = ContainerNode
-@PrimitiveNode = PrimitiveNode
-@ValueNode = ValueNode
-@OdseNode = OdseNode
 
 @CustomError = CustomError
 @VendorError = VendorError
 @DeveloperError = DeveloperError
 @ExtendedError = ExtendedError
+###

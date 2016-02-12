@@ -3,6 +3,7 @@ pathObj = require 'path'
 fsObj = require 'fs'
 { DbManager } = require './db/db-manager.coffee'
 { ConstantHelper } = require './utility/constant-helper.coffee'
+{ ClientOdseScriptGenerator } = require './client-odse-script-generator.coffee'
 
 class ServerRoot
 
@@ -104,7 +105,11 @@ class ServerRoot
       return null
     responseObj.end 'Dummy response to url: ' + requestUrl
 
+  generateOdseClientScript : () ->
+    new ClientOdseScriptGenerator()
+
   serverEntry : () =>
+    @generateOdseClientScript()
     console.log ( "Server started on: http://localhost:" + port + '/' )
 
 new ServerRoot()

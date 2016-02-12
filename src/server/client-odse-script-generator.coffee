@@ -148,8 +148,8 @@ class ClientOdseScriptGenerator
           exportName += ( item.charAt i )
         declarationsThatNeedsToBeReplaced.push exportName
         item = item.replace exportStringPattern , clientBindingPrefix
-        while ( item.search ' ' ) isnt -1
-          item = item.replace ' ' , ''
+        while ( item.search '= ' ) isnt -1
+          item = item.replace '= ' , '='
       res.push item
     return res
 
@@ -181,6 +181,10 @@ class ClientOdseScriptGenerator
               flag = true
               j = i - 1
               k = i + len2
+
+              # means that this is an export line, which has already been replaced
+              if ( line.search clientBindingPrefix ) is 0
+                flag = false
 
               if j < 0
                 flag = false
@@ -225,18 +229,11 @@ class ClientOdseScriptGenerator
     return dataString
 
   _writeOnFile = ( fileContentList , patternList ) ->
-
-
     dataString = ''
     dataString += odseClientScriptPrefix
     for file in fileContentList
-
-
-
-
       for line in file
         dataString += line + '\n'
-
     dataString = _removeStringFromPatternList dataString , patternList
     filePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     fsObj.writeFileSync filePath , dataString , 'utf8'
