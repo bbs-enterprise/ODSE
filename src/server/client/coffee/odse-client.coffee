@@ -1,15 +1,6 @@
 window.odse = {} ;
 
-###
-  NOTE: The following is extracted from the official 'evolvenode' module. Try not to modify anything here
-  since on later releases, these classes will be loaded from evolvenode module directly.
-  Everything is classically written, so you can just subclass and hook if you need to.
-###
 
-###
-  @class Iterator
-  @purpose Asynchronous iterator for a list with flow control.
-###
 
 class Iterator
 
@@ -36,27 +27,16 @@ class Iterator
       @finalFn = null
       cb()
 
-window.odse.Iterator = window.odse.Iterator
+window.odse.Iterator=Iterator
 
-###
-  @window.odse.iterate
-###
 
 window.odse.iterate = (list, forEachFn) ->
   new window.odse.Iterator list, forEachFn
 
-window.odse.iterate = window.odse.iterate
 
 
-###
-  NOTE: The following is extracted from the official 'evolvenode' module. Try not to modify anything here
-  since on later releases, these classes will be loaded from evolvenode module directly.
-  Everything is classically written, so you can just subclass and hook if you need to.
-###
 
-###
-  @class EventEmitter
-###
+
 
 class EventEmitter
 
@@ -70,13 +50,13 @@ class EventEmitter
     else if typeof eventArg is 'string'
       return eventArg
     else
-      throw new Error 'Type Mismatch. Expected <window.odse.Event> or <string>'
+      throw new Error 'Type Mismatch. Expected <Event> or <string>'
 
   isRegistered: (name)-> name of @_EventClassMap
 
   register: (EventClass, name = null)->
     name = EventClass.prototype.name unless name
-    throw new Error "window.odse.Event <#{name}> is already registered" if @isRegistered name
+    throw new Error "Event <#{name}> is already registered" if @isRegistered name
     @_EventClassMap[name] = {
       earlyHandlerList: []
       lateHandlerList: []
@@ -105,7 +85,7 @@ class EventEmitter
     name = @__getProperEventName eventArg
 
     unless @isRegistered name
-      throw new Error "window.odse.Event <#{name}> is not registered and so can not be listened to."
+      throw new Error "Event <#{name}> is not registered and so can not be listened to."
 
     if modifier is null
       @_EventClassMap[name].handlerList.push handlerFn
@@ -125,7 +105,7 @@ class EventEmitter
     name = @__getProperEventName eventArg
 
     unless @isRegistered name
-      throw new Error "window.odse.Event <#{name}> is not registered and so nothing to remove listener from"
+      throw new Error "Event <#{name}> is not registered and so nothing to remove listener from"
 
     if handlerFn is null
       @_EventClassMap[name].handlerList = {}
@@ -154,7 +134,7 @@ class EventEmitter
     name = @__getProperEventName eventArg
 
     unless @isRegistered name
-      throw new Error "window.odse.Event <#{name}> is not registered and so can not be emitted."
+      throw new Error "Event <#{name}> is not registered and so can not be emitted."
 
     return [].concat @_EventClassMap[name].earlyHandlerList, @_EventClassMap[name].handlerList, @_EventClassMap[name].lateHandlerList
 
@@ -164,7 +144,7 @@ class EventEmitter
     name = @__getProperEventName eventArg
 
     unless @isRegistered name
-      throw new Error "window.odse.Event <#{name}> is not registered and so can not be emitted."
+      throw new Error "Event <#{name}> is not registered and so can not be emitted."
 
     eventObject = new (@_EventClassMap[name].EventClass) origin: @, target: @, data: data, name:name
     eventObject.setCompletionCallback completionHandler if completionHandler
@@ -172,9 +152,6 @@ class EventEmitter
 
     return @
 
-###
-  @class Event
-###
 
 class Event extends window.odse.EventEmitter
 
@@ -183,17 +160,17 @@ class Event extends window.odse.EventEmitter
 
   @fallbackHandler: null
 
-  name: 'window.odse.Event'
+  name: 'Event'
 
   constructor: ({@origin, @target, data, handlerList, name} = {})->
 
     super
 
     unless ((@origin is null) or (typeof @origin is 'object' and @origin instanceof window.odse.EventEmitter))
-      throw new Error 'Type Mismatch. Expected origin to be <null> or <window.odse.EventEmitter>'
+      throw new Error 'Type Mismatch. Expected origin to be <null> or <EventEmitter>'
 
     unless ((@target is null) or (typeof @target is 'object' and @target instanceof window.odse.EventEmitter))
-      throw new Error 'Type Mismatch. Expected target to be <null> or <window.odse.EventEmitter>'
+      throw new Error 'Type Mismatch. Expected target to be <null> or <EventEmitter>'
 
     @target = @origin if @origin and not @target
     @origin = @target if @target and not @origin
@@ -205,7 +182,7 @@ class Event extends window.odse.EventEmitter
       @name = name
     else
       try
-        if @name is 'window.odse.Event' and @constructor.name isnt 'window.odse.Event'
+        if @name is 'Event' and @constructor.name isnt 'Event'
           @name = @constructor.name
       catch ex
 
@@ -246,7 +223,7 @@ class Event extends window.odse.EventEmitter
     return @
 
   dispatch: ()=>
-    throw new Error 'window.odse.Event is already dispatched' if @isDispatched
+    throw new Error 'Event is already dispatched' if @isDispatched
     @isDispatched = true
     if @constructor.isSequencial and @constructor.isAsync
       @next()
@@ -333,9 +310,6 @@ class Event extends window.odse.EventEmitter
   #   @dispatch()
 
 
-###
-  @class ErrorEvent
-###
 class ErrorEvent extends window.odse.Event
 
   @isAsync: true
@@ -359,6 +333,6 @@ class ErrorEvent extends window.odse.Event
 
 
 
-window.odse.Event = window.odse.Event
-window.odse.EventEmitter = window.odse.EventEmitter
-window.odse.ErrorEvent = window.odse.ErrorEvent
+window.odse.Event=Event
+window.odse.EventEmitter=EventEmitter
+window.odse.ErrorEvent=ErrorEvent

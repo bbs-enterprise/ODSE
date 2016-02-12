@@ -17,6 +17,7 @@ class ClientOdseScriptGenerator
   coffeeFilePatternSuffix = '.coffee'
   omittedFileNameList = [ 'html-div-extraction.coffee' ]
   omittedRequireNames = [ 'http' , 'client-odse-script-generator.coffee' ]
+  removeStringPatternList = [ 'window.odse.iterate=iterate' ]
 
   unorderedFileNameList = null
   declarationsThatNeedsToBeReplaced = null
@@ -73,18 +74,30 @@ class ClientOdseScriptGenerator
     res.push subString
     return res
 
+  _removeMultiLineCommentsFromLines = ( dataList ) ->
+    res = []
+    idx = 0
+    sz = dataList.length
+    while idx < sz
+      if ( dataList[ idx ].search '###' ) isnt -1
+        jdx = idx + 1
+        while jdx < sz
+          if ( dataList[ jdx ].search '###' ) isnt -1
+            break
+          jdx++
+        idx = jdx + 1
+        continue
+      res.push dataList[ idx ]
+      idx++
+    return res
+
   _getRequireFileNameList = ( dataList ) ->
     res = []
     for item in dataList
       idx = ( item.search requireStringPattern )
       if idx isnt -1 and ( item.search '=' ) isnt -1
         partialFilePath = item.substr ( idx + requireStringPattern.length + 1 ) , ( item.length - ( idx + requireStringPattern.length ) - 1 )
-        while ( partialFilePath.search '\'' ) isnt -1
-          partialFilePath = partialFilePath.replace '\'' , ''
-        while ( partialFilePath.search '"' ) isnt -1
-          partialFilePath = partialFilePath.replace '"' , ''
-        while ( partialFilePath.search '\r' ) isnt -1
-          partialFilePath = partialFilePath.replace '\r' , ''
+        partialFilePath = _removeStringFromPatternList partialFilePath , [ '\'' , '"' ,  '\r' ]
         len = partialFilePath.length
         i = len - 1
         j = 0
@@ -108,7 +121,7 @@ class ClientOdseScriptGenerator
     return res
 
   _removeRequireLines = ( dataList ) ->
-    # also handle multi line require calls
+    # also handles multi line require expressions
     res = []
     for item in dataList
       if ( item.search requireStringPattern ) isnt -1
@@ -135,7 +148,18 @@ class ClientOdseScriptGenerator
           exportName += ( item.charAt i )
         declarationsThatNeedsToBeReplaced.push exportName
         item = item.replace exportStringPattern , clientBindingPrefix
+        while ( item.search ' ' ) isnt -1
+          item = item.replace ' ' , ''
       res.push item
+    return res
+
+  _generateAllAlphaNumericCharacters = () ->
+    res = []
+    for i in [ 0 ... 26 ]
+      res.push String.fromCharCode ( i + ( 'a'.charCodeAt 0 ) )
+      res.push String.fromCharCode ( i + ( 'A'.charCodeAt 0 ) )
+    for i in [ 0 ... 10 ]
+      res.push String.fromCharCode ( i + ( '0'.charCodeAt 0 ) )
     return res
 
   _replaceGlobalReferences = ( dataList , replaceKeywordList ) ->
@@ -158,12 +182,17 @@ class ClientOdseScriptGenerator
               j = i - 1
               k = i + len2
 
-              if j >= 0 and ( ( line.charCodeAt j ) is ( '.'.charCodeAt 0 ) )
-                flag = false
-              if j >= 0 and ( ( ( line.charCodeAt j ) >= ( 'A'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( 'Z'.charCodeAt 0 ) ) or ( ( line.charCodeAt j ) >= ( 'a'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( 'z'.charCodeAt 0 ) ) or ( ( line.charCodeAt j ) >= ( '0'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( '9'.charCodeAt 0 ) ) )
-                flag = false
-              if k < len1 and ( ( ( line.charCodeAt k ) >= ( 'A'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( 'Z'.charCodeAt 0 ) ) or ( ( line.charCodeAt k ) >= ( 'a'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( 'z'.charCodeAt 0 ) ) or ( ( line.charCodeAt k ) >= ( '0'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( '9'.charCodeAt 0 ) ) )
-                flag = false
+              #Checks alpha-numeric characters as well as other custom defined characters. In both prefix and suffix.
+              falsifiablePrefixCharacterList = _generateAllAlphaNumericCharacters().join [ '.' , '\'' , '<' , '"' , '=' ]
+              for char in falsifiablePrefixCharacterList
+                if j >= 0 and ( ( line.charCodeAt j ) is ( char.charCodeAt 0 ) )
+                  flag = false
+              falsifiableSuffixCharacterList = _generateAllAlphaNumericCharacters()
+              for char in falsifiableSuffixCharacterList
+                if k >= 0 and ( ( line.charCodeAt k ) is ( char.charCodeAt 0 ) )
+                  flag = false
+
+              #Checks for class declaration
               len4 = classStringPattern.length
               x = i - len4
               secondSubString = ''
@@ -172,6 +201,7 @@ class ClientOdseScriptGenerator
               if secondSubString is classStringPattern
                 flag = false
 
+              #If everything is ok, replace the keyword with client bindings
               if flag is true
                 newLine += ( clientBindingPrefix + keyword )
                 i += len2
@@ -185,7 +215,15 @@ class ClientOdseScriptGenerator
         res[ res.length - 1 ].push newLine
     return res
 
-  _writeOnFile = ( fileContentList ) ->
+  _removeStringFromPatternList = ( dataString , patternList ) ->
+    for item in patternList
+      while ( dataString.search item ) isnt -1
+        dataString = dataString.replace item , ''
+    return dataString
+
+  _writeOnFile = ( fileContentList , patternList ) ->
+
+
     cn = 7
 
 
@@ -206,7 +244,7 @@ class ClientOdseScriptGenerator
       if cn < 0
         break
 
-
+    dataString = _removeStringFromPatternList dataString , patternList
     filePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     fsObj.writeFileSync filePath , dataString , 'utf8'
 
@@ -217,7 +255,6 @@ class ClientOdseScriptGenerator
     sourceFilePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     destinationFolderPath = pathObj.join __dirname , relativeClientJsFolderPath
     cmd = 'coffee --compile --output ' + destinationFolderPath + ' ' + sourceFilePath
-    console.log cmd
     exec cmd , _compileToJsCallback
 
   _generate = () ->
@@ -231,6 +268,7 @@ class ClientOdseScriptGenerator
     fileDataInMap = {}
     for item in fileContentList
       fileDataLineList = _breakStringDataToLines item
+      fileDataLineList = _removeMultiLineCommentsFromLines fileDataLineList
       requiredFileList = _getRequireFileNameList fileDataLineList
       nameDependencyMap[ unorderedFileNameList[ idx ] ] = requiredFileList
       fileDataLineList = _removeRequireLines fileDataLineList
@@ -244,8 +282,7 @@ class ClientOdseScriptGenerator
     for item in orderedRequireList
       orderedFileContentList.push fileDataInMap[ item ]
     orderedFileContentList = _replaceGlobalReferences orderedFileContentList , declarationsThatNeedsToBeReplaced
-    _writeOnFile orderedFileContentList
+    _writeOnFile orderedFileContentList , removeStringPatternList
     _compileToJs()
-    #console.log declarationsThatNeedsToBeReplaced
 
 @ClientOdseScriptGenerator = ClientOdseScriptGenerator

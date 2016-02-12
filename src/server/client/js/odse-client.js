@@ -8,19 +8,6 @@
 
   window.odse = {};
 
-
-  /*
-    NOTE: The following is extracted from the official 'evolvenode' module. Try not to modify anything here
-    since on later releases, these classes will be loaded from evolvenode module directly.
-    Everything is classically written, so you can just subclass and hook if you need to.
-   */
-
-
-  /*
-    @class Iterator
-    @purpose Asynchronous iterator for a list with flow control.
-   */
-
   Iterator = (function() {
     function Iterator(list1, forEachFn1) {
       this.list = list1;
@@ -62,30 +49,11 @@
 
   })();
 
-  window.odse.Iterator = window.odse.Iterator;
-
-
-  /*
-    @window.odse.iterate
-   */
+  window.odse.Iterator = Iterator;
 
   window.odse.iterate = function(list, forEachFn) {
     return new window.odse.Iterator(list, forEachFn);
   };
-
-  window.odse.iterate = window.odse.iterate;
-
-
-  /*
-    NOTE: The following is extracted from the official 'evolvenode' module. Try not to modify anything here
-    since on later releases, these classes will be loaded from evolvenode module directly.
-    Everything is classically written, so you can just subclass and hook if you need to.
-   */
-
-
-  /*
-    @class EventEmitter
-   */
 
   EventEmitter = (function() {
     function EventEmitter() {
@@ -99,7 +67,7 @@
       } else if (typeof eventArg === 'string') {
         return eventArg;
       } else {
-        throw new Error('Type Mismatch. Expected <window.odse.Event> or <string>');
+        throw new Error('Type Mismatch. Expected <Event> or <string>');
       }
     };
 
@@ -115,7 +83,7 @@
         name = EventClass.prototype.name;
       }
       if (this.isRegistered(name)) {
-        throw new Error("window.odse.Event <" + name + "> is already registered");
+        throw new Error("Event <" + name + "> is already registered");
       }
       this._EventClassMap[name] = {
         earlyHandlerList: [],
@@ -147,7 +115,7 @@
       }
       name = this.__getProperEventName(eventArg);
       if (!this.isRegistered(name)) {
-        throw new Error("window.odse.Event <" + name + "> is not registered and so can not be listened to.");
+        throw new Error("Event <" + name + "> is not registered and so can not be listened to.");
       }
       if (modifier === null) {
         this._EventClassMap[name].handlerList.push(handlerFn);
@@ -170,7 +138,7 @@
       }
       name = this.__getProperEventName(eventArg);
       if (!this.isRegistered(name)) {
-        throw new Error("window.odse.Event <" + name + "> is not registered and so nothing to remove listener from");
+        throw new Error("Event <" + name + "> is not registered and so nothing to remove listener from");
       }
       if (handlerFn === null) {
         return this._EventClassMap[name].handlerList = {};
@@ -210,7 +178,7 @@
       var name;
       name = this.__getProperEventName(eventArg);
       if (!this.isRegistered(name)) {
-        throw new Error("window.odse.Event <" + name + "> is not registered and so can not be emitted.");
+        throw new Error("Event <" + name + "> is not registered and so can not be emitted.");
       }
       return [].concat(this._EventClassMap[name].earlyHandlerList, this._EventClassMap[name].handlerList, this._EventClassMap[name].lateHandlerList);
     };
@@ -225,7 +193,7 @@
       }
       name = this.__getProperEventName(eventArg);
       if (!this.isRegistered(name)) {
-        throw new Error("window.odse.Event <" + name + "> is not registered and so can not be emitted.");
+        throw new Error("Event <" + name + "> is not registered and so can not be emitted.");
       }
       eventObject = new this._EventClassMap[name].EventClass({
         origin: this,
@@ -244,11 +212,6 @@
 
   })();
 
-
-  /*
-    @class Event
-   */
-
   Event = (function(superClass) {
     extend(Event, superClass);
 
@@ -258,7 +221,7 @@
 
     Event.fallbackHandler = null;
 
-    Event.prototype.name = 'window.odse.Event';
+    Event.prototype.name = 'Event';
 
     function Event(arg) {
       var data, error, ex, handlerList, name, ref;
@@ -269,10 +232,10 @@
       this.stopPropagation = bind(this.stopPropagation, this);
       Event.__super__.constructor.apply(this, arguments);
       if (!((this.origin === null) || (typeof this.origin === 'object' && this.origin instanceof window.odse.EventEmitter))) {
-        throw new Error('Type Mismatch. Expected origin to be <null> or <window.odse.EventEmitter>');
+        throw new Error('Type Mismatch. Expected origin to be <null> or <EventEmitter>');
       }
       if (!((this.target === null) || (typeof this.target === 'object' && this.target instanceof window.odse.EventEmitter))) {
-        throw new Error('Type Mismatch. Expected target to be <null> or <window.odse.EventEmitter>');
+        throw new Error('Type Mismatch. Expected target to be <null> or <EventEmitter>');
       }
       if (this.origin && !this.target) {
         this.target = this.origin;
@@ -286,7 +249,7 @@
         this.name = name;
       } else {
         try {
-          if (this.name === 'window.odse.Event' && this.constructor.name !== 'window.odse.Event') {
+          if (this.name === 'Event' && this.constructor.name !== 'Event') {
             this.name = this.constructor.name;
           }
         } catch (error) {
@@ -343,7 +306,7 @@
     Event.prototype.dispatch = function() {
       var handlerFn, i, len, ref;
       if (this.isDispatched) {
-        throw new Error('window.odse.Event is already dispatched');
+        throw new Error('Event is already dispatched');
       }
       this.isDispatched = true;
       if (this.constructor.isSequencial && this.constructor.isAsync) {
@@ -420,11 +383,6 @@
 
   })(window.odse.EventEmitter);
 
-
-  /*
-    @class ErrorEvent
-   */
-
   ErrorEvent = (function(superClass) {
     extend(ErrorEvent, superClass);
 
@@ -454,10 +412,10 @@
 
   })(window.odse.Event);
 
-  window.odse.Event = window.odse.Event;
+  window.odse.Event = Event;
 
-  window.odse.EventEmitter = window.odse.EventEmitter;
+  window.odse.EventEmitter = EventEmitter;
 
-  window.odse.ErrorEvent = window.odse.ErrorEvent;
+  window.odse.ErrorEvent = ErrorEvent;
 
 }).call(this);
