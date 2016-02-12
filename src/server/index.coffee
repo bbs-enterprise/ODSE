@@ -2,6 +2,7 @@ http = require 'http'
 pathObj = require 'path'
 fsObj = require 'fs'
 { DbManager } = require './db/db-manager.coffee'
+{ ConstantHelper } = require './utility/constant-helper.coffee'
 
 class ServerRoot
 
@@ -11,6 +12,10 @@ class ServerRoot
   apiObjectList = null
   apiFolderPartialPath = './apis'
   rootApiClassFileName = 'api.coffee'
+  htmlFilePatternString = '.html'
+  htmlFileRelativeFolder = './client/html/'
+  jsFilePatternString = '.js'
+  jsFileRelativeFolder = './client/js/'
 
   constructor : () ->
     server = http.createServer @requestEntry
@@ -52,11 +57,52 @@ class ServerRoot
         responseObj.end 'Invalid api path.'
         return null
 
+  lookForParticularFile : ( fileName , folderPath ) ->
+    res = null
+    folderPath = pathObj.join __dirname , folderPath
+    fileList = fsObj.readdirSync folderPath
+    flag = false
+    for item in fileList
+      if item.toLowerCase() is fileName.toLowerCase()
+        flag = true
+        break
+    if flag is true
+      res = fsObj.readFileSync( folderPath + fileName ).toString()
+    return res
+
+  handleHtmlFiles : ( requestObj , responseObj , fileName ) ->
+    fileData = @lookForParticularFile fileName , htmlFileRelativeFolder
+    if fileData is null
+      responseObj.end 'Invalid HTML file request: ' + fileName
+    else
+      responseObj.end fileData
+
+  handleJsFiles : ( requestObj , responseObj, fileName  ) ->
+    fileData = @lookForParticularFile fileName , jsFileRelativeFolder
+    if fileData is null
+      responseObj.end 'Invalid JS file request: ' + fileName
+    else
+      responseObj.end fileData
+
   requestEntry : ( requestObj , responseObj ) =>
-    if ( requestObj.url.search apiPathPrefix ) is 0
+    requestUrl = requestObj.url
+    if ( requestUrl.search apiPathPrefix ) is 0
       @processApiRequests requestObj , responseObj
       return null
-    responseObj.end 'Dummy response to url: ' + requestObj.url
+    requestPartsList = ( requestUrl.split '/' )
+    fileName = requestPartsList[ requestPartsList.length - 1 ]
+    if ( ConstantHelper.isNotNull fileName ) is false
+      responseObj.end 'Invalid resource request: ' + requestUrl
+      return null
+    if fileName is ''
+      fileName = 'index.html'
+    if ( fileName.search htmlFilePatternString ) isnt -1
+      @handleHtmlFiles requestObj , responseObj , fileName
+      return null
+    if ( fileName.search jsFilePatternString ) isnt -1
+      @handleJsFiles requestObj , responseObj , fileName
+      return null
+    responseObj.end 'Dummy response to url: ' + requestUrl
 
   serverEntry : () =>
     console.log ( "Server started on: http://localhost:" + port + '/' )

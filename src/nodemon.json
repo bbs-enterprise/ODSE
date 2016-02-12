@@ -4,9 +4,9 @@
     ".git" ,
     ".logs" ,
     "node_modules/**/node_modules" ,
-    "server/client/coffee/odse.js" ,
+    "server/client/coffee/odse-client.js" ,
     "server/db" ,
-    "server/client/coffee/odse.coffee"
+    "server/client/coffee/odse-client.coffee"
   ] ,
   "verbose" : false
 }

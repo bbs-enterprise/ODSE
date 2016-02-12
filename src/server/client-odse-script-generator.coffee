@@ -7,11 +7,13 @@ fsObj = require 'fs'
 class ClientOdseScriptGenerator
 
   relativeOdseScriptFolderPath = './../'
-  relativeClientCoffeeFilePath = './client/coffee/odse.coffee'
+  relativeClientCoffeeFilePath = './client/coffee/odse-client.coffee'
   relativeClientJsFolderPath = './client/js/'
   requireStringPattern = 'require '
   exportStringPattern = '@' # Has to be the first character
-  clientBindingPrefix = 'window.app.odse.'
+  clientBindingPrefix = 'window.odse.'
+  odseClientScriptPrefix = 'window.odse = {} ;\n\n'
+  classStringPattern = 'class '
   coffeeFilePatternSuffix = '.coffee'
   omittedFileNameList = [ 'html-div-extraction.coffee' ]
   omittedRequireNames = [ 'http' , 'client-odse-script-generator.coffee' ]
@@ -106,9 +108,17 @@ class ClientOdseScriptGenerator
     return res
 
   _removeRequireLines = ( dataList ) ->
+    # also handle multi line require calls
     res = []
     for item in dataList
       if ( item.search requireStringPattern ) isnt -1
+        if ( item.charCodeAt 0 ) is ( '}'.charCodeAt 0 )
+          while true
+            if res.length is 0
+              break
+            lastElement = res.pop()
+            if ( lastElement.charCodeAt 0 ) is ( '{'.charCodeAt 0 )
+              break
         continue
       res.push item
     return res
@@ -143,9 +153,31 @@ class ClientOdseScriptGenerator
             subString = ''
             for j in [ i ... len3 ]
               subString += ( line.charAt j )
-            if subString is keyword and ( i - 1 ) >= 0 and ( ( line.charCodeAt ( i - 1 ) ) isnt ( '.'.charCodeAt 0 ) )
-              newLine += ( clientBindingPrefix + keyword )
-              i += len2
+            if subString is keyword
+              flag = true
+              j = i - 1
+              k = i + len2
+
+              if j >= 0 and ( ( line.charCodeAt j ) is ( '.'.charCodeAt 0 ) )
+                flag = false
+              if j >= 0 and ( ( ( line.charCodeAt j ) >= ( 'A'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( 'Z'.charCodeAt 0 ) ) or ( ( line.charCodeAt j ) >= ( 'a'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( 'z'.charCodeAt 0 ) ) or ( ( line.charCodeAt j ) >= ( '0'.charCodeAt 0 ) and ( line.charCodeAt j ) <= ( '9'.charCodeAt 0 ) ) )
+                flag = false
+              if k < len1 and ( ( ( line.charCodeAt k ) >= ( 'A'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( 'Z'.charCodeAt 0 ) ) or ( ( line.charCodeAt k ) >= ( 'a'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( 'z'.charCodeAt 0 ) ) or ( ( line.charCodeAt k ) >= ( '0'.charCodeAt 0 ) and ( line.charCodeAt k ) <= ( '9'.charCodeAt 0 ) ) )
+                flag = false
+              len4 = classStringPattern.length
+              x = i - len4
+              secondSubString = ''
+              for m in [ x ... i ]
+                secondSubString += ( line.charAt m )
+              if secondSubString is classStringPattern
+                flag = false
+
+              if flag is true
+                newLine += ( clientBindingPrefix + keyword )
+                i += len2
+              else
+                newLine += ( line.charAt i )
+                i++
             else
               newLine += ( line.charAt i )
               i++
@@ -155,10 +187,10 @@ class ClientOdseScriptGenerator
 
   _writeOnFile = ( fileContentList ) ->
     dataString = ''
+    dataString += odseClientScriptPrefix
     for file in fileContentList
       for line in file
         dataString += line + '\n'
-      break
     filePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     fsObj.writeFileSync filePath , dataString , 'utf8'
 
@@ -168,9 +200,9 @@ class ClientOdseScriptGenerator
   _compileToJs = () ->
     sourceFilePath = pathObj.join __dirname , relativeClientCoffeeFilePath
     destinationFolderPath = pathObj.join __dirname , relativeClientJsFolderPath
-    console.log sourceFilePath , destinationFolderPath
     cmd = 'coffee --compile --output ' + destinationFolderPath + ' ' + sourceFilePath
-    #exec cmd , _compileToJsCallback
+    console.log cmd
+    exec cmd , _compileToJsCallback
 
   _generate = () ->
     topoSortObj = new TopologicalSort()

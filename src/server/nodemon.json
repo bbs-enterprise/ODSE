@@ -5,8 +5,8 @@
     ".logs" ,
     "node_modules/**/node_modules" ,
     "db" ,
-    "client/js/odse.js" ,
-    "client/coffee/odse.coffee"
+    "client/js/odse-client.js" ,
+    "client/coffee/odse-client.coffee"
   ] ,
   "verbose" : false
 }
