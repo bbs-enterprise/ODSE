@@ -11,11 +11,13 @@ class TreeMerger
     jsonString = '{"val":1}'
     ServerOdseApiCall.clearAllOdseDataApi ( response1 ) =>
       console.log response1
+      ###
       blobId1 = InitialDataDissectionObj.run jsonString , 'ARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPG' , ( response2 , response3 ) =>
         console.log response2
         console.log response3
         constructOdseTreeObj = new ConstructOdseTree blobId1 , () =>
           console.log constructOdseTreeObj.extractValue()
+      ###
 
 new TreeMerger()
 

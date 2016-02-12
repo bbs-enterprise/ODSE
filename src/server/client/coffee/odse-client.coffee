@@ -18,9 +18,10 @@ class OdseConfigs
   @serverIdPrefix : 'wFS'
   @clientIdPrefix : 'ri0'
 
+  @webProtocol : 'http://'
   @hostName : 'localhost'
   @hostPort : '8671'
-  @serverRootUrl : 'http://' + @hostName + ':' + @hostPort + '/'
+  @serverRootUrl : @webProtocol + @hostName + ':' + @hostPort + '/'
   @serverApiPathSignature : 'api/1/'
   @serverApiRootUrl : @serverRootUrl + @serverApiPathSignature
   @serverAddNodeIdPathApiUrl : @serverApiRootUrl + 'add-node-id-path'
@@ -175,89 +176,6 @@ class TransactioNode
       @propertyName = propertyNameParam
 
 window.odse.TransactioNode =TransactioNode
-
-class ServerOdseApiCall
-
-  @genericServerApiCall : ( partialUrl , data , cbfn ) ->
-    if ( typeof data ) is 'object'
-      data = JSON.stringify data
-    options = {}
-    options.host = window.odse.OdseConfigs.hostName
-    options.port = window.odse.OdseConfigs.hostPort
-    options.path = '/' + window.odse.OdseConfigs.serverApiPathSignature + partialUrl
-    options.method = 'POST'
-    options.headers = {
-      'Content-Type' : 'application/json' ,
-      'Content-Length' : Buffer.byteLength( data )
-    }
-    result = ''
-    requestObj = http.request options , ( responseObj ) =>
-      responseObj.on 'data' , ( chunk ) =>
-        result += chunk
-      responseObj.on 'end' , () =>
-        cbfn ( JSON.parse result )
-    requestObj.write data
-    requestObj.end()
-
-  @clearAllOdseDataApi : ( cbfn ) ->
-    window.odse.ServerOdseApiCall.genericServerApiCall 'clear-all-odse-data' , {} , ( response ) =>
-      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
-        cbfn response.data
-
-  @callSaveNewTransactionHistoryApi : ( transactionList , cbfn ) ->
-    window.odse.ServerOdseApiCall.genericServerApiCall 'save-new-transaction-history' , transactionList , ( response ) =>
-      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
-        cbfn response.data
-
-  @callGetTransactionHistoryApi : ( blobId , cbfn ) ->
-    window.odse.ServerOdseApiCall.genericServerApiCall 'get-transaction-history' , { blobId : blobId } , ( response ) =>
-      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
-        response.data = window.odse.TransactioNodeListManager.sort response.data
-        cbfn blobId , response.data
-
-  @callSaveNewNodeIdPathListApi : ( nodeIdPathList , cbfn ) ->
-    window.odse.ServerOdseApiCall.genericServerApiCall 'save-new-node-id-path-list' , nodeIdPathList , ( response ) =>
-      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
-        cbfn response.data
-
-  @callGetNodeIdPathListApi : ( blobId , cbfn ) ->
-    window.odse.ServerOdseApiCall.genericServerApiCall 'get-node-id-path-list' , { blobId : blobId } , ( response ) =>
-      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
-        cbfn blobId , response.data
-
-window.odse.ServerOdseApiCall =ServerOdseApiCall
-
-class StorageDecider
-
-  @clearServerStorage : ( cbfn ) ->
-    window.odse.ServerOdseApiCall.clearAllOdseDataApi cbfn
-
-  @clearClientStorage : ( cbfn ) ->
-    #to-do
-
-  @saveNewTransactionHistory : ( transactionList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , cbfn
-
-  @saveNewNodeIdPathList : ( nodeIdPathList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , cbfn
-
-  @saveBothTransactionHistoryAndNewNodeIdPathList : ( transactionList , nodeIdPathList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , ( saveNewTransactionHistoryResponse ) =>
-        window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , ( saveNewNodeIdPathListResponse ) =>
-          cbfn saveNewTransactionHistoryResponse , saveNewNodeIdPathListResponse
-
-  @getNodeIdPathList : ( blobId , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callGetNodeIdPathListApi blobId , cbfn
-
-  @getTransactionHistory : ( blobId , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callGetTransactionHistoryApi blobId , cbfn
-
-window.odse.StorageDecider =StorageDecider
 
 
 class Iterator
@@ -974,6 +892,139 @@ class TransactioNodeManager
     @processAndAddTransactionToList transactioNodeObj
 
 window.odse.TransactioNodeManager =TransactioNodeManager
+class ClientXhrClient
+
+  xhrObj = null
+  localCbfnRefernence = null
+
+  constructor : () ->
+    _init()
+
+  _init = () ->
+    xhrObj = new XMLHttpRequest()
+
+  _onReadyStateChange = () ->
+    if xhrObj.readyState is 0
+      result = '{"hasError":true,"error":"Failed to connect to the internet."}'
+      localCbfnRefernence ( JSON.parse result )
+    if xhrObj.readyState is 4 and xhrObj.status is 200
+      result = xhrObj.responseText
+      localCbfnRefernence ( JSON.parse result )
+
+  _onRequestError = () ->
+    result = '{"hasError":true,"error":"An error occurred while transferring the data to server."}'
+    localCbfnRefernence ( JSON.parse result )
+
+  postRequest : ( url , data , cbfn ) =>
+    localCbfnRefernence = cbfn
+    xhrObj.open "POST" , url , true
+    xhrObj.setRequestHeader 'Content-type' , 'application/json'
+    xhrObj.onreadystatechange = _onReadyStateChange
+    xhrObj.addEventListener 'error' , _onRequestError
+    xhrObj.send data
+
+window.odse.ClientXhrClient =ClientXhrClient
+
+class ServerOdseApiCall
+
+  @genericServerApiCall : ( partialUrl , data , cbfn ) ->
+    if ( typeof data ) is 'object'
+      data = JSON.stringify data
+    options = {}
+    options.host = window.odse.OdseConfigs.hostName
+    options.port = window.odse.OdseConfigs.hostPort
+    options.path = '/' + window.odse.OdseConfigs.serverApiPathSignature + partialUrl
+    options.method = 'POST'
+    options.headers = {
+      'Content-Type' : 'application/json' ,
+      'Content-Length' : Buffer.byteLength( data )
+    }
+    result = ''
+    requestObj = http.request options , ( responseObj ) =>
+      responseObj.on 'data' , ( chunk ) =>
+        result += chunk
+      responseObj.on 'end' , () =>
+        cbfn ( JSON.parse result )
+    requestObj.write data
+    requestObj.end()
+
+  @genericClientApiCall : ( partialUrl , data , cbfn ) ->
+    if ( typeof data ) is 'object'
+      data = JSON.stringify data
+    cxcObj = new window.odse.ClientXhrClient()
+    url = window.odse.OdseConfigs.webProtocol + window.odse.OdseConfigs.hostName + ':' + window.odse.OdseConfigs.hostPort + '/' + window.odse.OdseConfigs.serverApiPathSignature + partialUrl
+    cxcObj.postRequest url , data , cbfn
+
+  @getWebRequestObject : () ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      return window.odse.ServerOdseApiCall.genericServerApiCall
+    else
+      return window.odse.ServerOdseApiCall.genericClientApiCall
+
+  @clearAllOdseDataApi : ( cbfn ) ->
+    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod 'clear-all-odse-data' , {} , ( response ) =>
+      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
+        cbfn response.data
+
+  @callSaveNewTransactionHistoryApi : ( transactionList , cbfn ) ->
+    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod 'save-new-transaction-history' , transactionList , ( response ) =>
+      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
+        cbfn response.data
+
+  @callGetTransactionHistoryApi : ( blobId , cbfn ) ->
+    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod 'get-transaction-history' , { blobId : blobId } , ( response ) =>
+      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
+        response.data = window.odse.TransactioNodeListManager.sort response.data
+        cbfn blobId , response.data
+
+  @callSaveNewNodeIdPathListApi : ( nodeIdPathList , cbfn ) ->
+    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod 'save-new-node-id-path-list' , nodeIdPathList , ( response ) =>
+      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
+        cbfn response.data
+
+  @callGetNodeIdPathListApi : ( blobId , cbfn ) ->
+    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod 'get-node-id-path-list' , { blobId : blobId } , ( response ) =>
+      if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
+        cbfn blobId , response.data
+
+window.odse.ServerOdseApiCall =ServerOdseApiCall
+
+class StorageDecider
+
+  @clearServerStorage : ( cbfn ) ->
+    window.odse.ServerOdseApiCall.clearAllOdseDataApi cbfn
+
+  @clearClientStorage : ( cbfn ) ->
+    #to-do
+
+  @saveNewTransactionHistory : ( transactionList , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , cbfn
+
+  @saveNewNodeIdPathList : ( nodeIdPathList , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , cbfn
+
+  @saveBothTransactionHistoryAndNewNodeIdPathList : ( transactionList , nodeIdPathList , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , ( saveNewTransactionHistoryResponse ) =>
+        window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , ( saveNewNodeIdPathListResponse ) =>
+          cbfn saveNewTransactionHistoryResponse , saveNewNodeIdPathListResponse
+
+  @getNodeIdPathList : ( blobId , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.ServerOdseApiCall.callGetNodeIdPathListApi blobId , cbfn
+
+  @getTransactionHistory : ( blobId , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.ServerOdseApiCall.callGetTransactionHistoryApi blobId , cbfn
+
+window.odse.StorageDecider =StorageDecider
 
 class ConstructOdseTree
 
@@ -1150,11 +1201,6 @@ class TreeMerger
     jsonString = '{"val":1}'
     window.odse.ServerOdseApiCall.clearAllOdseDataApi ( response1 ) =>
       console.log response1
-      blobId1 = window.odse.InitialDataDissectionObj.run jsonString , 'ARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPG' , ( response2 , response3 ) =>
-        console.log response2
-        console.log response3
-        constructOdseTreeObj = new window.odse.ConstructOdseTree blobId1 , () =>
-          console.log constructOdseTreeObj.extractValue()
 
 new TreeMerger()
 

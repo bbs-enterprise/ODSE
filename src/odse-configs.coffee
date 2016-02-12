@@ -8,9 +8,10 @@ class OdseConfigs
   @serverIdPrefix : 'wFS'
   @clientIdPrefix : 'ri0'
 
+  @webProtocol : 'http://'
   @hostName : 'localhost'
   @hostPort : '8671'
-  @serverRootUrl : 'http://' + @hostName + ':' + @hostPort + '/'
+  @serverRootUrl : @webProtocol + @hostName + ':' + @hostPort + '/'
   @serverApiPathSignature : 'api/1/'
   @serverApiRootUrl : @serverRootUrl + @serverApiPathSignature
   @serverAddNodeIdPathApiUrl : @serverApiRootUrl + 'add-node-id-path'

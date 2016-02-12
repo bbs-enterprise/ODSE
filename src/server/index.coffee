@@ -17,6 +17,8 @@ class ServerRoot
   htmlFileRelativeFolder = './client/html/'
   jsFilePatternString = '.js'
   jsFileRelativeFolder = './client/js/'
+  imageFilePatternStringList = [ '.ico' , '.png' , '.jpg' ]
+  imageFileRelativeFolder = './client/image/'
 
   constructor : () ->
     server = http.createServer @requestEntry
@@ -85,6 +87,13 @@ class ServerRoot
     else
       responseObj.end fileData
 
+  handleImageFiles : ( requestObj , responseObj, fileName  ) ->
+    fileData = @lookForParticularFile fileName , imageFileRelativeFolder
+    if fileData is null
+      responseObj.end 'Invalid Image file request: ' + fileName
+    else
+      responseObj.end fileData
+
   requestEntry : ( requestObj , responseObj ) =>
     requestUrl = requestObj.url
     if ( requestUrl.search apiPathPrefix ) is 0
@@ -103,6 +112,10 @@ class ServerRoot
     if ( fileName.search jsFilePatternString ) isnt -1
       @handleJsFiles requestObj , responseObj , fileName
       return null
+    for item in imageFilePatternStringList
+      if ( fileName.search item ) isnt -1
+        @handleImageFiles requestObj , responseObj , fileName
+        return null
     responseObj.end 'Dummy response to url: ' + requestUrl
 
   generateOdseClientScript : () ->
