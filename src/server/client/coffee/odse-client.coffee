@@ -410,6 +410,8 @@ class EventEmitter
 
     return @
 
+window.odse.EventEmitter =EventEmitter
+
 
 class Event extends window.odse.EventEmitter
 
@@ -567,6 +569,7 @@ class Event extends window.odse.EventEmitter
   #   @_completionCallback = replacementCompletionHandler
   #   @dispatch()
 
+window.odse.Event =Event
 
 class ErrorEvent extends window.odse.Event
 
@@ -590,9 +593,6 @@ class ErrorEvent extends window.odse.Event
     @resolution or= null
 
 
-
-window.odse.Event =Event
-window.odse.EventEmitter =EventEmitter
 window.odse.ErrorEvent =ErrorEvent
 
 
@@ -606,6 +606,8 @@ class OdseEvent extends window.odse.Event
   constructor: ->
     super
     @detail = @storedData
+
+window.odse.OdseEvent =OdseEvent
 
 class BubbleableOdseEvent extends window.odse.OdseEvent
 
@@ -631,6 +633,7 @@ class BubbleableOdseEvent extends window.odse.OdseEvent
   _nodeCompletionHandler: (e)=>
     @bubbleUp()
 
+window.odse.BubbleableOdseEvent =BubbleableOdseEvent
 
 
 
@@ -673,6 +676,8 @@ class OdseNode extends window.odse.EventEmitter
       parentNode.forceRemoveChild @
     setImmediate => @emit 'remove', { node: @ }
 
+window.odse.OdseNode =OdseNode
+
 class ValueNode extends window.odse.OdseNode
 
   constructor: ->
@@ -689,6 +694,8 @@ class ValueNode extends window.odse.OdseNode
     @__setValue newValue
     setImmediate => @emit 'set', { node: @, oldValue, newValue }
 
+window.odse.ValueNode =ValueNode
+
 class PrimitiveNode extends window.odse.ValueNode
 
   constructor: (value = null)->
@@ -698,10 +705,14 @@ class PrimitiveNode extends window.odse.ValueNode
   getValue: ->
     return @__value
 
+window.odse.PrimitiveNode =PrimitiveNode
+
 class ContainerNode extends window.odse.ValueNode
   constructor: ->
     super
     @register window.odse.BubbleableOdseEvent, 'update'
+
+window.odse.ContainerNode =ContainerNode
 
 class ObjectNode extends window.odse.ContainerNode
 
@@ -787,6 +798,7 @@ class ObjectNode extends window.odse.ContainerNode
   hasNode: (key)->
     return (key of @childrenMap)
 
+window.odse.ObjectNode =ObjectNode
 
 class ArrayNode extends window.odse.ContainerNode
 
@@ -891,6 +903,8 @@ class ArrayNode extends window.odse.ContainerNode
   lastIndexOf: (node)->
     return @childrenList.lastIndexOf node
 
+window.odse.ArrayNode =ArrayNode
+
 class ObjectDataStorageEngine
 
   @parse: (json, doForEachFn = null)->
@@ -905,21 +919,8 @@ class ObjectDataStorageEngine
     doForEachFn node if doForEachFn
     return node
 
-window.odse.OdseEvent =OdseEvent
-window.odse.BubbleableOdseEvent =BubbleableOdseEvent
-
 window.odse.ObjectDataStorageEngine =ObjectDataStorageEngine
-window.odse.ArrayNode =ArrayNode
-window.odse.ObjectNode =ObjectNode
-window.odse.ContainerNode =ContainerNode
-window.odse.PrimitiveNode =PrimitiveNode
-window.odse.ValueNode =ValueNode
-window.odse.OdseNode =OdseNode
 
-window.odse.CustomError =CustomError
-window.odse.VendorError =VendorError
-window.odse.DeveloperError =DeveloperError
-window.odse.ExtendedError =ExtendedError
 
 class TransactioNodeManager
 

@@ -609,6 +609,8 @@
 
   })();
 
+  window.odse.EventEmitter = EventEmitter;
+
   Event = (function(superClass) {
     extend(Event, superClass);
 
@@ -780,6 +782,8 @@
 
   })(window.odse.EventEmitter);
 
+  window.odse.Event = Event;
+
   ErrorEvent = (function(superClass) {
     extend(ErrorEvent, superClass);
 
@@ -809,10 +813,6 @@
 
   })(window.odse.Event);
 
-  window.odse.Event = Event;
-
-  window.odse.EventEmitter = EventEmitter;
-
   window.odse.ErrorEvent = ErrorEvent;
 
   OdseEvent = (function(superClass) {
@@ -830,6 +830,8 @@
     return OdseEvent;
 
   })(window.odse.Event);
+
+  window.odse.OdseEvent = OdseEvent;
 
   BubbleableOdseEvent = (function(superClass) {
     extend(BubbleableOdseEvent, superClass);
@@ -875,6 +877,8 @@
     return BubbleableOdseEvent;
 
   })(window.odse.OdseEvent);
+
+  window.odse.BubbleableOdseEvent = BubbleableOdseEvent;
 
   OdseNode = (function(superClass) {
     extend(OdseNode, superClass);
@@ -961,6 +965,8 @@
 
   })(window.odse.EventEmitter);
 
+  window.odse.OdseNode = OdseNode;
+
   ValueNode = (function(superClass) {
     extend(ValueNode, superClass);
 
@@ -993,6 +999,8 @@
 
   })(window.odse.OdseNode);
 
+  window.odse.ValueNode = ValueNode;
+
   PrimitiveNode = (function(superClass) {
     extend(PrimitiveNode, superClass);
 
@@ -1012,6 +1020,8 @@
 
   })(window.odse.ValueNode);
 
+  window.odse.PrimitiveNode = PrimitiveNode;
+
   ContainerNode = (function(superClass) {
     extend(ContainerNode, superClass);
 
@@ -1023,6 +1033,8 @@
     return ContainerNode;
 
   })(window.odse.ValueNode);
+
+  window.odse.ContainerNode = ContainerNode;
 
   ObjectNode = (function(superClass) {
     extend(ObjectNode, superClass);
@@ -1181,6 +1193,8 @@
     return ObjectNode;
 
   })(window.odse.ContainerNode);
+
+  window.odse.ObjectNode = ObjectNode;
 
   ArrayNode = (function(superClass) {
     extend(ArrayNode, superClass);
@@ -1366,6 +1380,8 @@
 
   })(window.odse.ContainerNode);
 
+  window.odse.ArrayNode = ArrayNode;
+
   ObjectDataStorageEngine = (function() {
     function ObjectDataStorageEngine() {}
 
@@ -1394,31 +1410,7 @@
 
   })();
 
-  window.odse.OdseEvent = OdseEvent;
-
-  window.odse.BubbleableOdseEvent = BubbleableOdseEvent;
-
   window.odse.ObjectDataStorageEngine = ObjectDataStorageEngine;
-
-  window.odse.ArrayNode = ArrayNode;
-
-  window.odse.ObjectNode = ObjectNode;
-
-  window.odse.ContainerNode = ContainerNode;
-
-  window.odse.PrimitiveNode = PrimitiveNode;
-
-  window.odse.ValueNode = ValueNode;
-
-  window.odse.OdseNode = OdseNode;
-
-  window.odse.CustomError = CustomError;
-
-  window.odse.VendorError = VendorError;
-
-  window.odse.DeveloperError = DeveloperError;
-
-  window.odse.ExtendedError = ExtendedError;
 
   TransactioNodeManager = (function() {
     TransactioNodeManager.prototype.transactionList = null;
