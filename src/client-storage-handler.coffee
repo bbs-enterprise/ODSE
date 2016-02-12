@@ -1,4 +1,4 @@
-{ GenericUtilities } = require './en-util.coffee'
+{ GenericUtilities } = require './generic-utilities.coffee'
 
 class ClientStorageHandler
 
