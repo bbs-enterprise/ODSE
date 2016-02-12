@@ -1,17 +1,19 @@
 { TopologicalSort } = require './utility/topological-sort.coffee'
+{ exec } = require 'child_process'
 
 pathObj = require 'path'
 fsObj = require 'fs'
 
 class ClientOdseScriptGenerator
 
-  relativeScriptFolderPath = './../../'
-  relativeClientJsFile = './../../client/odse.js'
+  relativeOdseScriptFolderPath = './../'
+  relativeClientCoffeeFilePath = './client/odse.coffee'
+  relativeClientJsFolderPath = './client/'
   requireStringPattern = 'require '
-  exportStringPattern = '@' #has to be the first character
+  exportStringPattern = '@' # Has to be the first character
   clientBindingPrefix = 'window.app.odse.'
   coffeeFilePatternSuffix = '.coffee'
-  omittedFileNameList = []
+  omittedFileNameList = [ 'html-div-extraction.coffee' ]
   omittedRequireNames = [ 'http' , 'client-odse-script-generator.coffee' ]
 
   unorderedFileNameList = null
@@ -20,9 +22,9 @@ class ClientOdseScriptGenerator
   constructor : () ->
     _generate()
 
-  _getFileNameList = ( relativeScriptFolderPathParam ) ->
+  _getFileNameList = ( relativeOdseScriptFolderPathParam ) ->
     res = []
-    folderPath = pathObj.join __dirname , relativeScriptFolderPathParam
+    folderPath = pathObj.join __dirname , relativeOdseScriptFolderPathParam
     fileList = fsObj.readdirSync folderPath
     for item in fileList
       flag = false
@@ -36,9 +38,9 @@ class ClientOdseScriptGenerator
         res.push item
     return res
 
-  _getFileContentList = ( relativeScriptFolderPathParam ) ->
+  _getFileContentList = ( relativeOdseScriptFolderPathParam ) ->
     res = []
-    folderPath = pathObj.join __dirname , relativeScriptFolderPathParam
+    folderPath = pathObj.join __dirname , relativeOdseScriptFolderPathParam
     fileList = fsObj.readdirSync folderPath
     for item in fileList
       flag = false
@@ -141,14 +143,14 @@ class ClientOdseScriptGenerator
             subString = ''
             for j in [ i ... len3 ]
               subString += ( line.charAt j )
-            if subString is keyword and ( i - 1 ) >= 0 and ( line.charCodeAt ( i - 1 ) isnt ( '.'.charCodeAt 0 ) )
+            if subString is keyword and ( i - 1 ) >= 0 and ( ( line.charCodeAt ( i - 1 ) ) isnt ( '.'.charCodeAt 0 ) )
               newLine += ( clientBindingPrefix + keyword )
               i += len2
             else
               newLine += ( line.charAt i )
               i++
           line = newLine
-      res[ res.length - 1 ].push newLine
+        res[ res.length - 1 ].push newLine
     return res
 
   _writeOnFile = ( fileContentList ) ->
@@ -156,15 +158,26 @@ class ClientOdseScriptGenerator
     for file in fileContentList
       for line in file
         dataString += line + '\n'
-    filePath = pathObj.join __dirname , relativeClientJsFile
-    fsObj.writeFileSync filePath , dataString
+      break
+    filePath = pathObj.join __dirname , relativeClientCoffeeFilePath
+    fsObj.writeFileSync filePath , dataString , 'utf8'
+
+  _compileToJsCallback = () ->
+    console.log 'Successfully generated client ODSE script.'
+
+  _compileToJs = () ->
+    sourceFilePath = pathObj.join __dirname , relativeClientCoffeeFilePath
+    destinationFolderPath = pathObj.join __dirname , relativeClientJsFolderPath
+    console.log sourceFilePath , destinationFolderPath
+    cmd = 'coffee --compile ' + sourceFilePath
+    #exec cmd , _compileToJsCallback
 
   _generate = () ->
     topoSortObj = new TopologicalSort()
     declarationsThatNeedsToBeReplaced = []
     unorderedFileNameList = []
-    fileContentList = _getFileContentList relativeScriptFolderPath
-    unorderedFileNameList = _getFileNameList relativeScriptFolderPath
+    fileContentList = _getFileContentList relativeOdseScriptFolderPath
+    unorderedFileNameList = _getFileNameList relativeOdseScriptFolderPath
     nameDependencyMap = {}
     idx = 0
     fileDataInMap = {}
@@ -176,7 +189,6 @@ class ClientOdseScriptGenerator
       fileDataLineList = _removeExportLines fileDataLineList
       fileDataInMap[ unorderedFileNameList[ idx ] ] = fileDataLineList
       idx++
-    #console.log nameDependencyMap
     topoSortObj.createMapFromNames unorderedFileNameList
     topoSortObj.addEdgeFromNameDependencies nameDependencyMap
     orderedRequireList = topoSortObj.runTopoSort()
@@ -185,7 +197,7 @@ class ClientOdseScriptGenerator
       orderedFileContentList.push fileDataInMap[ item ]
     orderedFileContentList = _replaceGlobalReferences orderedFileContentList , declarationsThatNeedsToBeReplaced
     _writeOnFile orderedFileContentList
-    console.log declarationsThatNeedsToBeReplaced
-
+    _compileToJs()
+    #console.log declarationsThatNeedsToBeReplaced
 
 @ClientOdseScriptGenerator = ClientOdseScriptGenerator

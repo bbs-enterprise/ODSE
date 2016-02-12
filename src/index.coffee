@@ -2,7 +2,7 @@
 { ServerOdseApiCall } = require './server-odse-api-call.coffee'
 { StorageDecider } = require './storage-decider.coffee'
 { ConstructOdseTree } = require './construct-odse-tree.coffee'
-{ ClientOdseScriptGenerator } = require './temp/server/client-odse-script-generator.coffee'
+{ ClientOdseScriptGenerator } = require './server/client-odse-script-generator.coffee'
 
 class TreeMerger
 
