@@ -1,0 +1,10 @@
+{
+  "restartable" : "rs" ,
+  "ignore" : [
+    ".git" ,
+    ".logs" ,
+    "node_modules/**/node_modules" ,
+    "../../client/"
+  ] ,
+  "verbose" : false
+}

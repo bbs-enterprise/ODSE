@@ -29,7 +29,7 @@ class ConstructOdseTree
     data = {}
     tree = {}
     idx = -1
-    console.log transactionList
+    #console.log transactionList
     for item in transactionList
       if item.type is OdseConfigs.newArrayStringConstant
         referenceArray.push []
