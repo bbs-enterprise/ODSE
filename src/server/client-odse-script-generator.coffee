@@ -12,7 +12,8 @@ class ClientOdseScriptGenerator
   requireStringPattern = 'require '
   exportStringPattern = '@' # Has to be the first character
   clientBindingPrefix = 'window.odse.'
-  odseClientScriptPrefix = 'window.odse = {} ;\n\n'
+  # Initializes the window odse object and setImmediate function is not set
+  odseClientScriptPrefix = 'window.odse = {}\n\nif ! setImmediate or setImmediate is null or ( typeof setImmediate ) is \'undefined\'\n  setImmediate = ( fn ) ->\n    return setTimeout fn , 0\n\n'
   classStringPattern = 'class '
   coffeeFilePatternSuffix = '.coffee'
   omittedFileNameList = [ 'html-div-extraction.coffee' ]
@@ -239,7 +240,8 @@ class ClientOdseScriptGenerator
     fsObj.writeFileSync filePath , dataString , 'utf8'
 
   _compileToJsCallback = () ->
-    console.log 'Successfully generated client ODSE script.'
+    msg = 'Successfully generated client ODSE script.'
+    console.log msg
 
   _compileToJs = () ->
     sourceFilePath = pathObj.join __dirname , relativeClientCoffeeFilePath

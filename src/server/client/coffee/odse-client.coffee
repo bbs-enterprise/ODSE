@@ -1,4 +1,8 @@
-window.odse = {} ;
+window.odse = {}
+
+if ! setImmediate or setImmediate is null or ( typeof setImmediate ) is 'undefined'
+  setImmediate = ( fn ) ->
+    return setTimeout fn , 0
 
 class TransactioNodeListManager
 
@@ -925,7 +929,7 @@ class ClientXhrClient
 
 window.odse.ClientXhrClient =ClientXhrClient
 
-class ServerOdseApiCall
+class OdseApiCall
 
   @genericServerApiCall : ( partialUrl , data , cbfn ) ->
     if ( typeof data ) is 'object'
@@ -957,130 +961,42 @@ class ServerOdseApiCall
 
   @getWebRequestObject : () ->
     if window.odse.GenericUtilities.isRunningOnServer() is true
-      return window.odse.ServerOdseApiCall.genericServerApiCall
+      return window.odse.OdseApiCall.genericServerApiCall
     else
-      return window.odse.ServerOdseApiCall.genericClientApiCall
+      return window.odse.OdseApiCall.genericClientApiCall
 
   @clearAllOdseDataApi : ( cbfn ) ->
-    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = window.odse.OdseApiCall.getWebRequestObject()
     webRequestMethod 'clear-all-odse-data' , {} , ( response ) =>
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callSaveNewTransactionHistoryApi : ( transactionList , cbfn ) ->
-    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = window.odse.OdseApiCall.getWebRequestObject()
     webRequestMethod 'save-new-transaction-history' , transactionList , ( response ) =>
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callGetTransactionHistoryApi : ( blobId , cbfn ) ->
-    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = window.odse.OdseApiCall.getWebRequestObject()
     webRequestMethod 'get-transaction-history' , { blobId : blobId } , ( response ) =>
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         response.data = window.odse.TransactioNodeListManager.sort response.data
         cbfn blobId , response.data
 
   @callSaveNewNodeIdPathListApi : ( nodeIdPathList , cbfn ) ->
-    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = window.odse.OdseApiCall.getWebRequestObject()
     webRequestMethod 'save-new-node-id-path-list' , nodeIdPathList , ( response ) =>
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callGetNodeIdPathListApi : ( blobId , cbfn ) ->
-    webRequestMethod = window.odse.ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = window.odse.OdseApiCall.getWebRequestObject()
     webRequestMethod 'get-node-id-path-list' , { blobId : blobId } , ( response ) =>
       if ( window.odse.GenericUtilities.isNotNull cbfn ) is true
         cbfn blobId , response.data
 
-window.odse.ServerOdseApiCall =ServerOdseApiCall
-
-class StorageDecider
-
-  @clearServerStorage : ( cbfn ) ->
-    window.odse.ServerOdseApiCall.clearAllOdseDataApi cbfn
-
-  @clearClientStorage : ( cbfn ) ->
-    #to-do
-
-  @saveNewTransactionHistory : ( transactionList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , cbfn
-
-  @saveNewNodeIdPathList : ( nodeIdPathList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , cbfn
-
-  @saveBothTransactionHistoryAndNewNodeIdPathList : ( transactionList , nodeIdPathList , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callSaveNewTransactionHistoryApi transactionList , ( saveNewTransactionHistoryResponse ) =>
-        window.odse.ServerOdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , ( saveNewNodeIdPathListResponse ) =>
-          cbfn saveNewTransactionHistoryResponse , saveNewNodeIdPathListResponse
-
-  @getNodeIdPathList : ( blobId , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callGetNodeIdPathListApi blobId , cbfn
-
-  @getTransactionHistory : ( blobId , cbfn ) ->
-    if window.odse.GenericUtilities.isRunningOnServer() is true
-      window.odse.ServerOdseApiCall.callGetTransactionHistoryApi blobId , cbfn
-
-window.odse.StorageDecider =StorageDecider
-
-class ConstructOdseTree
-
-  nodeIdPathObj = null
-  transactionList = null
-  data = null
-  tree = null
-  transactioNodeManagerObj = null
-
-  constructor : ( blobId , cbfn ) ->
-    if ( window.odse.GenericUtilities.isNotNull blobId ) is false
-      throw new Error 'Blob ID is required for ODSE node tree generation.'
-    nodeIdPathObj = {}
-    transactionList = []
-    window.odse.StorageDecider.getNodeIdPathList blobId , ( blobIdParam , nodeIdPathList ) =>
-      for item in nodeIdPathList
-        for key , value of item
-          nodeIdPathObj[ key ] = value
-      window.odse.StorageDecider.getTransactionHistory blobId , ( blobIdParam , transactionListParam ) =>
-        transactionList = transactionListParam
-        _buildTree cbfn
-
-  _buildTree = ( cbfn ) =>
-    referenceArray = []
-    data = {}
-    tree = {}
-    idx = -1
-    #console.log transactionList
-    for item in transactionList
-      if item.type is window.odse.OdseConfigs.newArrayStringConstant
-        referenceArray.push []
-        idx++
-      else if item.type is window.odse.OdseConfigs.newObjectStringConstant
-        referenceArray.push {}
-        idx++
-      else if item.type is window.odse.OdseConfigs.newPrimitiveStringConstant
-        referenceArray.push item.val
-        idx++
-      else if item.type is window.odse.OdseConfigs.objectAddStringConstant
-        referenceArray[ idx - 1 ][ item.propertyName ] = referenceArray[ idx ]
-        referenceArray.pop()
-        idx--
-      else if item.type is window.odse.OdseConfigs.arrayPushStringConstant
-        referenceArray[ idx - 1 ].push referenceArray[ idx ]
-        referenceArray.pop()
-        idx--
-    data = referenceArray[ 0 ]
-    cbfn true
-
-  extractValue : () =>
-    return data
-
-  getTree : () =>
-    return tree
-
-window.odse.ConstructOdseTree =ConstructOdseTree
+window.odse.OdseApiCall =OdseApiCall
 
 class ClientStorageHandler
 
@@ -1089,20 +1005,30 @@ class ClientStorageHandler
   constructor : () ->
     try
       storageObj = localStorage
+      #Change this localStorage variable to the desired storage system. Also change the method calls for the storage object in the below three functions(_getItem, _setItem, clearTheWholeStorage).
     catch ex
       storageObj = null
 
-  initializeStorage : ( key ) ->
-    a = 1
-    #if window.odse.GenericUtilities.isNotNull
+  _getItem = ( key ) ->
+    value = storageObj.getItem key
+    return value
+
+  _setItem = ( key , value ) ->
+    storageObj.setItem key , value
+
+  clearTheStorage : ( key ) =>
+    storageObj.removeItem key
+
+  forceSet : ( key , value ) =>
+    value = JSON.stringify value
+    _setItem key , value
 
   set : ( key , value ) =>
     if ( window.odse.GenericUtilities.isNotNull ( @get key ) ) is false
       value = JSON.stringify value
-      storageObj.setItem key , value
+      _setItem key , value
     else
       storedValue = @get key
-      storedValue = JSON.parse storedValue
       if ( typeof storedValue ).toLowerCase() is 'object' and Array.isArray storedValue
         for item in value
           storedValue.push item
@@ -1112,10 +1038,10 @@ class ClientStorageHandler
       else
         throw new Error 'Invalid approach to store data on client side.'
       value = JSON.stringify storedValue
-      storageObj.setItem key , value
+      _setItem key , value
 
   get : ( key ) =>
-    value = ( storageObj.getItem key )
+    value = ( _getItem key )
     value = JSON.parse value
     return value
 
@@ -1132,6 +1058,104 @@ class ClientPendingSyncHandler
 
 window.odse.ClientPendingSyncHandler =new ClientPendingSyncHandler()
 
+class ClientOdseStorage
+
+  @getClientStorageObject : () ->
+    cshObj = new window.odse.ClientStorageHandler()
+    window.odse.ClientOdseStorage.initializeClientStorage cshObj
+    return cshObj
+
+  @clearTheClientOdseStorageData : () ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    cshObj.clearTheStorage window.odse.OdseConfigs.clientStorageKeyNameForIdPath
+    cshObj.clearTheStorage window.odse.OdseConfigs.clientStorageKeyNameForTransactions
+
+  @forceInitializeClientStorageAfterSync : () ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    cshObj.forceSet window.odse.OdseConfigs.clientStorageKeyNameForIdPath , []
+    cshObj.forceSet window.odse.OdseConfigs.clientStorageKeyNameForTransactions , []
+
+  @initializeClientStorage : ( cshObj ) ->
+    if ( window.odse.GenericUtilities.isNotNull ( cshObj.get window.odse.OdseConfigs.clientStorageKeyNameForIdPath ) ) is false
+      cshObj.set window.odse.OdseConfigs.clientStorageKeyNameForIdPath , []
+    if ( window.odse.GenericUtilities.isNotNull ( cshObj.get window.odse.OdseConfigs.clientStorageKeyNameForTransactions ) ) is false
+      cshObj.set window.odse.OdseConfigs.clientStorageKeyNameForTransactions , []
+
+  @callSaveNewTransactionHistoryApi : ( transactionList , cbfn ) ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    cshObj.set window.odse.OdseConfigs.clientStorageKeyNameForTransactions , transactionList
+    cbfn 'New transaction history has been saved successfully(CLIENT).'
+
+  @callSaveNewNodeIdPathListApi : ( nodeIdPathList , cbfn ) ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    cshObj.set window.odse.OdseConfigs.clientStorageKeyNameForIdPath , nodeIdPathList
+    cbfn 'New node ID path list has been saved successfully(CLIENT).'
+
+  @callGetNodeIdPathListApi : ( blobId , cbfn ) ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    nodePathIdList = cshObj.get window.odse.OdseConfigs.clientStorageKeyNameForIdPath
+    res = []
+    for item in nodePathIdList
+      if item.blobId is blobId
+        res = res.concat item.allNodeIdPathList
+    cbfn blobId , res
+
+  @callGetTransactionHistoryApi : ( blobId , cbfn ) ->
+    cshObj = window.odse.ClientOdseStorage.getClientStorageObject()
+    transactionHistoryList = cshObj.get window.odse.OdseConfigs.clientStorageKeyNameForTransactions
+    res = []
+    for item in transactionHistoryList
+      if item.blobId is blobId
+        res.push item
+    res = window.odse.TransactioNodeListManager.sort res
+    cbfn blobId , res
+
+window.odse.ClientOdseStorage =ClientOdseStorage
+
+class StorageDecider
+
+  @clearServerStorage : ( cbfn ) ->
+    window.odse.OdseApiCall.clearAllOdseDataApi cbfn
+
+  @clearClientStorage : ( cbfn ) ->
+    window.odse.ClientOdseStorage.clearTheClientOdseStorageData()
+
+  @initializeClientStorage : () ->
+    window.odse.ClientOdseStorage.initializeClientStorage()
+
+  @saveNewTransactionHistory : ( transactionList , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.OdseApiCall.callSaveNewTransactionHistoryApi transactionList , cbfn
+
+  @saveNewNodeIdPathList : ( nodeIdPathList , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.OdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , cbfn
+
+  @saveBothTransactionHistoryAndNewNodeIdPathList : ( transactionList , nodeIdPathList , blobId , cbfn ) ->
+    nodeIdPathList = [ nodeIdPathList ]
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.OdseApiCall.callSaveNewTransactionHistoryApi transactionList , ( saveNewTransactionHistoryResponse ) =>
+        window.odse.OdseApiCall.callSaveNewNodeIdPathListApi nodeIdPathList , ( saveNewNodeIdPathListResponse ) =>
+          cbfn saveNewTransactionHistoryResponse , saveNewNodeIdPathListResponse , blobId
+    else
+      window.odse.ClientOdseStorage.callSaveNewTransactionHistoryApi transactionList , ( saveNewTransactionHistoryResponse ) =>
+        window.odse.ClientOdseStorage.callSaveNewNodeIdPathListApi nodeIdPathList , ( saveNewNodeIdPathListResponse ) =>
+          cbfn saveNewTransactionHistoryResponse , saveNewNodeIdPathListResponse , blobId
+
+  @getNodeIdPathList : ( blobId , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.OdseApiCall.callGetNodeIdPathListApi blobId , cbfn
+    else
+      window.odse.ClientOdseStorage.callGetNodeIdPathListApi blobId , cbfn
+
+  @getTransactionHistory : ( blobId , cbfn ) ->
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      window.odse.OdseApiCall.callGetTransactionHistoryApi blobId , cbfn
+    else
+      window.odse.ClientOdseStorage.callGetTransactionHistoryApi blobId , cbfn
+
+window.odse.StorageDecider =StorageDecider
+
 class InitialDataDissection
 
   blobId = null
@@ -1139,14 +1163,18 @@ class InitialDataDissection
   allNodeIdPathList = null
   transactioNodeManagerObj = null
 
+  getBlobId : () =>
+    return blobId
+
   run : ( jsonString , userIdParam , cbfn ) =>
     transactioNodeManagerObj = new window.odse.TransactioNodeManager()
     blobId = window.odse.GenericUtilities.generateDataBlobId()
     userId = userIdParam
     allNodeIdPathList = []
+
     _recursiveDataBuild [] , ( JSON.parse jsonString )
 
-    window.odse.StorageDecider.saveBothTransactionHistoryAndNewNodeIdPathList transactioNodeManagerObj.transactionList , { blobId : blobId , allNodeIdPathList : allNodeIdPathList } , cbfn
+    window.odse.StorageDecider.saveBothTransactionHistoryAndNewNodeIdPathList transactioNodeManagerObj.transactionList , { blobId : blobId , allNodeIdPathList : allNodeIdPathList } , blobId , cbfn
 
     return blobId
 
@@ -1158,14 +1186,18 @@ class InitialDataDissection
 
   _recursiveDataBuild = ( nodeIdPathList , data ) ->
     newNodeIdPathList = []
+
     for id in nodeIdPathList
       newNodeIdPathList.push id
+
     currentNodeObj = null
+
     if data is null or ( typeof data ).toLowerCase() is 'undefined'
       currentNodeObj = new window.odse.PrimitiveNode()
       newNodeIdPathList.push currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , null
+
     else if ( typeof data ).toLowerCase() is 'object' and ( Array.isArray data )
       currentNodeObj = new window.odse.ArrayNode()
       newNodeIdPathList.push currentNodeObj.nodeId
@@ -1174,6 +1206,7 @@ class InitialDataDissection
         currentNodeObj.pushNode ( _recursiveDataBuild newNodeIdPathList , item )
         transactioNodeManagerObj.arrayNodePushTransaction userId , blobId , currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
+
     else if ( typeof data ).toLowerCase() is 'object'
       currentNodeObj = new window.odse.ObjectNode()
       newNodeIdPathList.push currentNodeObj.nodeId
@@ -1182,6 +1215,7 @@ class InitialDataDissection
         currentNodeObj.addNode key , ( _recursiveDataBuild newNodeIdPathList , value )
         transactioNodeManagerObj.objectAddTransaction userId , blobId , currentNodeObj.nodeId , key
       _addNodePathViaNodeIdList newNodeIdPathList
+
     else if ( typeof data ).toLowerCase() is 'number' or ( typeof data ).toLowerCase() is 'string' or ( typeof data ).toLowerCase() is 'symbol' or ( typeof data ).toLowerCase() is 'boolean'
       if Object.prototype.toString.call( data ) is '[object Date]'
         data = data.getTime()
@@ -1189,25 +1223,129 @@ class InitialDataDissection
       newNodeIdPathList.push currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , data
+
     return currentNodeObj
 
 window.odse.InitialDataDissectionObj =( new InitialDataDissection() )
+
+class ConstructOdseTree
+
+  nodeIdPathObj = null
+  transactionList = null
+  data = null
+  tree = null
+  transactioNodeManagerObj = null
+  nodeIdPropertyNameMap = null
+
+  constructor : ( blobId , cbfn ) ->
+    if ( window.odse.GenericUtilities.isNotNull blobId ) is false
+      throw new Error 'Blob ID is required for ODSE node tree generation.'
+    nodeIdPathObj = {}
+    transactionList = []
+    window.odse.StorageDecider.getNodeIdPathList blobId , ( blobIdParam , nodeIdPathList ) =>
+      for item in nodeIdPathList
+        for key , value of item
+          nodeIdPathObj[ key ] = value
+      window.odse.StorageDecider.getTransactionHistory blobId , ( blobIdParam , transactionListParam ) =>
+        transactionList = transactionListParam
+        _buildTree()
+        data = _buildData tree
+        cbfn data , tree
+
+  _buildData = ( currentNodeObj ) =>
+    res = null
+    if ( currentNodeObj instanceof window.odse.ObjectNode ) is true
+      res = {}
+      currentNodeObj.forEach ( key , node ) =>
+        res[ nodeIdPropertyNameMap[ key ] ] = _buildData node
+    else if ( currentNodeObj instanceof window.odse.ArrayNode ) is true
+      res = []
+      currentNodeObj.forEach ( node , index ) =>
+        res.push ( _buildData node )
+    else if ( currentNodeObj instanceof window.odse.PrimitiveNode ) is true
+      res = currentNodeObj.getValue()
+    return res
+
+  _getNewNode = ( nodeTypeName , transactionObj ) =>
+    currentNodeObj = null
+    if nodeTypeName is window.odse.OdseConfigs.newArrayStringConstant
+      currentNodeObj = new window.odse.ArrayNode()
+    else if nodeTypeName is window.odse.OdseConfigs.newObjectStringConstant
+      currentNodeObj = new window.odse.ObjectNode()
+    else if nodeTypeName is window.odse.OdseConfigs.newPrimitiveStringConstant
+      currentNodeObj = new window.odse.PrimitiveNode transactionObj.val
+    currentNodeObj.nodeId = transactionObj.nodeId
+    currentNodeObj.createdTimeStamp = transactionObj.createdTimeStamp
+    currentNodeObj.lastUpdateTimeStamp = transactionObj.createdTimeStamp
+    return currentNodeObj
+
+  _buildTree = () =>
+    nodeIdPropertyNameMap = {}
+    referenceStack = []
+    tree = {}
+    cn = 0
+    for item in transactionList
+      if item.type is window.odse.OdseConfigs.newArrayStringConstant
+        referenceStack.push ( _getNewNode item.type , item )
+      else if item.type is window.odse.OdseConfigs.newObjectStringConstant
+        referenceStack.push ( _getNewNode item.type , item )
+      else if item.type is window.odse.OdseConfigs.newPrimitiveStringConstant
+        referenceStack.push ( _getNewNode item.type , item )
+      else if item.type is window.odse.OdseConfigs.objectAddStringConstant
+        elementToBeAdded = referenceStack[ referenceStack.length - 1 ]
+        nodeIdPropertyNameMap[ elementToBeAdded.nodeId ] = item.propertyName
+        for reference in referenceStack
+          if reference.nodeId is item.nodeId
+            reference.addNode elementToBeAdded.nodeId , elementToBeAdded
+            referenceStack.pop()
+            break
+        #console.log item , cn , nodeIdPathObj[ item.nodeId ]
+      else if item.type is window.odse.OdseConfigs.arrayPushStringConstant
+        elementToBeAdded = referenceStack[ referenceStack.length - 1 ]
+        nodeIdPropertyNameMap[ elementToBeAdded.nodeId ] = item.propertyName
+        for reference in referenceStack
+          if reference.nodeId is item.nodeId
+            reference.pushNode elementToBeAdded
+            referenceStack.pop()
+            break
+      cn++
+    #console.log transactionList , nodeIdPathObj , nodeIdPropertyNameMap
+    tree = referenceStack[ 0 ]
+
+  extractValue : () =>
+    return data
+
+  getTree : () =>
+    return tree
+
+window.odse.ConstructOdseTree =ConstructOdseTree
+
+
 
 
 class BasicTestRunner
 
   constructor : () ->
+    console.log '##RUNNING TESTS##'
     jsonString = '[{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"button-up","classList":{"0":"button-up"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"body","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"header","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lang-chooser","classList":{"0":"lang-chooser"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox menu-box","classList":{"0":"roundbox","1":"menu-box"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lb","classList":{"0":"roundbox-lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rb","classList":{"0":"roundbox-rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"menu-list-container","classList":{"0":"menu-list-container"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"sidebar","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"socials","classList":{"0":"socials"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"fb-root","className":" fb_reset","classList":{"0":"fb_reset"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"fb-like fb_iframe_widget","classList":{"0":"fb-like","1":"fb_iframe_widget"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"personal-sidebar","classList":{"0":"personal-sidebar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"for-avatar","classList":{"0":"for-avatar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"avatar","classList":{"0":"avatar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox top-contributed","classList":{"0":"roundbox","1":"sidebox","2":"top-contributed"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox top-contributed","classList":{"0":"roundbox","1":"sidebox","2":"top-contributed"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox sidebox","classList":{"0":"roundbox","1":"sidebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-lt","classList":{"0":"roundbox-lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"roundbox-rt","classList":{"0":"roundbox-rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"caption titled","classList":{"0":"caption","1":"titled"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"top-links","classList":{"0":"top-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"recent-actions","classList":{"0":"recent-actions"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottom-links","classList":{"0":"bottom-links"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"pageContent","className":"content-with-sidebar","classList":{"0":"content-with-sidebar"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"second-level-menu","classList":{"0":"second-level-menu"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"leftLava","classList":{"0":"leftLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"bottomLava","classList":{"0":"bottomLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"cornerLava","classList":{"0":"cornerLava"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"datatable ratingsDatatable","classList":{"0":"datatable","1":"ratingsDatatable"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lt","classList":{"0":"lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rt","classList":{"0":"rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lb","classList":{"0":"lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rb","classList":{"0":"rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"ilt","classList":{"0":"ilt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"irt","classList":{"0":"irt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"pagination","classList":{"0":"pagination"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"footer","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"userListsFacebox","classList":{"0":"userListsFacebox"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"datatable","classList":{"0":"datatable"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lt","classList":{"0":"lt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rt","classList":{"0":"rt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"lb","classList":{"0":"lb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"rb","classList":{"0":"rb"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"ilt","classList":{"0":"ilt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"irt","classList":{"0":"irt"},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"datepick-div","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxOverlay","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"colorbox","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxWrapper","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopCenter","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTopRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxMiddleLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxContent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadedContent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadingOverlay","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxLoadingGraphic","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxTitle","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxCurrent","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxNext","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxPrevious","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxSlideshow","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxClose","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxMiddleRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomLeft","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomCenter","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"cboxBottomRight","className":"","classList":{},"nodeType":1},{"tabIndex":-1,"localName":"div","tagName":"DIV","id":"","className":"","classList":{},"nodeType":1}]'
     jsonString = '[{"val":1,"name":"test"},{"val":2,"name":"ron"}]'
-    jsonString = '{"val":1}'
+    #jsonString = '{"val":1}'
+    if window.odse.GenericUtilities.isRunningOnServer() is true
+      new ClientOdseScriptGenerator()
+    else
+      window.odse.StorageDecider.clearClientStorage()
+      console.log 'Deleted all client ODSE data storage.'
     if window.odse.GenericUtilities.isRunningOnServer() is false
-      window.odse.ServerOdseApiCall.clearAllOdseDataApi ( response1 ) =>
-        console.log response1
-        blobId1 = window.odse.InitialDataDissectionObj.run jsonString , 'ARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPG' , ( response2 , response3 ) =>
-          console.log response2
-          console.log response3
-          constructOdseTreeObj = new window.odse.ConstructOdseTree blobId1 , () =>
-            console.log constructOdseTreeObj.extractValue()
+      window.odse.OdseApiCall.clearAllOdseDataApi ( response1 ) =>
+        #console.log response1 , 1
+        blobId2 = window.odse.InitialDataDissectionObj.run jsonString , 'ARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPGARSDP3vSx01QNiPG' , ( response2 , response3 , blobId1 ) =>
+          #console.log response2 , 2
+          #console.log response3 , 3
+          #console.log blobId1 , 5
+          constructOdseTreeObj = new window.odse.ConstructOdseTree blobId1 , ( response4 , response5 ) =>
+            console.log response4 , 5
+            console.log response5 , 6
+        #console.log blobId2 , 7
 
 new BasicTestRunner()
 

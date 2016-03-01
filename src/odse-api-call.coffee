@@ -4,7 +4,7 @@ http = require 'http'
 { TransactioNodeListManager } = require './transaction-node-list-manager.coffee'
 { ClientXhrClient } = require './client-xhr-client.coffee'
 
-class ServerOdseApiCall
+class OdseApiCall
 
   @genericServerApiCall : ( partialUrl , data , cbfn ) ->
     if ( typeof data ) is 'object'
@@ -36,39 +36,39 @@ class ServerOdseApiCall
 
   @getWebRequestObject : () ->
     if GenericUtilities.isRunningOnServer() is true
-      return ServerOdseApiCall.genericServerApiCall
+      return OdseApiCall.genericServerApiCall
     else
-      return ServerOdseApiCall.genericClientApiCall
+      return OdseApiCall.genericClientApiCall
 
   @clearAllOdseDataApi : ( cbfn ) ->
-    webRequestMethod = ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = OdseApiCall.getWebRequestObject()
     webRequestMethod 'clear-all-odse-data' , {} , ( response ) =>
       if ( GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callSaveNewTransactionHistoryApi : ( transactionList , cbfn ) ->
-    webRequestMethod = ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = OdseApiCall.getWebRequestObject()
     webRequestMethod 'save-new-transaction-history' , transactionList , ( response ) =>
       if ( GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callGetTransactionHistoryApi : ( blobId , cbfn ) ->
-    webRequestMethod = ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = OdseApiCall.getWebRequestObject()
     webRequestMethod 'get-transaction-history' , { blobId : blobId } , ( response ) =>
       if ( GenericUtilities.isNotNull cbfn ) is true
         response.data = TransactioNodeListManager.sort response.data
         cbfn blobId , response.data
 
   @callSaveNewNodeIdPathListApi : ( nodeIdPathList , cbfn ) ->
-    webRequestMethod = ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = OdseApiCall.getWebRequestObject()
     webRequestMethod 'save-new-node-id-path-list' , nodeIdPathList , ( response ) =>
       if ( GenericUtilities.isNotNull cbfn ) is true
         cbfn response.data
 
   @callGetNodeIdPathListApi : ( blobId , cbfn ) ->
-    webRequestMethod = ServerOdseApiCall.getWebRequestObject()
+    webRequestMethod = OdseApiCall.getWebRequestObject()
     webRequestMethod 'get-node-id-path-list' , { blobId : blobId } , ( response ) =>
       if ( GenericUtilities.isNotNull cbfn ) is true
         cbfn blobId , response.data
 
-@ServerOdseApiCall = ServerOdseApiCall
+@OdseApiCall = OdseApiCall

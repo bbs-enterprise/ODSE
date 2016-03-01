@@ -11,14 +11,18 @@ class InitialDataDissection
   allNodeIdPathList = null
   transactioNodeManagerObj = null
 
+  getBlobId : () =>
+    return blobId
+
   run : ( jsonString , userIdParam , cbfn ) =>
     transactioNodeManagerObj = new TransactioNodeManager()
     blobId = GenericUtilities.generateDataBlobId()
     userId = userIdParam
     allNodeIdPathList = []
+
     _recursiveDataBuild [] , ( JSON.parse jsonString )
 
-    StorageDecider.saveBothTransactionHistoryAndNewNodeIdPathList transactioNodeManagerObj.transactionList , { blobId : blobId , allNodeIdPathList : allNodeIdPathList } , cbfn
+    StorageDecider.saveBothTransactionHistoryAndNewNodeIdPathList transactioNodeManagerObj.transactionList , { blobId : blobId , allNodeIdPathList : allNodeIdPathList } , blobId , cbfn
 
     return blobId
 
@@ -30,14 +34,18 @@ class InitialDataDissection
 
   _recursiveDataBuild = ( nodeIdPathList , data ) ->
     newNodeIdPathList = []
+
     for id in nodeIdPathList
       newNodeIdPathList.push id
+
     currentNodeObj = null
+
     if data is null or ( typeof data ).toLowerCase() is 'undefined'
       currentNodeObj = new PrimitiveNode()
       newNodeIdPathList.push currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , null
+
     else if ( typeof data ).toLowerCase() is 'object' and ( Array.isArray data )
       currentNodeObj = new ArrayNode()
       newNodeIdPathList.push currentNodeObj.nodeId
@@ -46,6 +54,7 @@ class InitialDataDissection
         currentNodeObj.pushNode ( _recursiveDataBuild newNodeIdPathList , item )
         transactioNodeManagerObj.arrayNodePushTransaction userId , blobId , currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
+
     else if ( typeof data ).toLowerCase() is 'object'
       currentNodeObj = new ObjectNode()
       newNodeIdPathList.push currentNodeObj.nodeId
@@ -54,6 +63,7 @@ class InitialDataDissection
         currentNodeObj.addNode key , ( _recursiveDataBuild newNodeIdPathList , value )
         transactioNodeManagerObj.objectAddTransaction userId , blobId , currentNodeObj.nodeId , key
       _addNodePathViaNodeIdList newNodeIdPathList
+
     else if ( typeof data ).toLowerCase() is 'number' or ( typeof data ).toLowerCase() is 'string' or ( typeof data ).toLowerCase() is 'symbol' or ( typeof data ).toLowerCase() is 'boolean'
       if Object.prototype.toString.call( data ) is '[object Date]'
         data = data.getTime()
@@ -61,6 +71,7 @@ class InitialDataDissection
       newNodeIdPathList.push currentNodeObj.nodeId
       _addNodePathViaNodeIdList newNodeIdPathList
       transactioNodeManagerObj.addNewPrimitiveNodeTransaction userId , blobId , currentNodeObj.nodeId , data
+
     return currentNodeObj
 
 @InitialDataDissectionObj = ( new InitialDataDissection() )

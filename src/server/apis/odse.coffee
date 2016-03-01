@@ -78,7 +78,7 @@ class @SaveNewTransactionHistory extends Api
     @db.insert saveNewTransactionHistoryData , ( err , newDoc ) =>
       return setImmediate @respondToDatabaseError , e , err if err
 
-      @success e , 'New transaction history has been saved successfully.'
+      @success e , 'New transaction history has been saved successfully(SERVER).'
 
 ###
   class GetTransactionHistory
@@ -131,17 +131,18 @@ class @SaveNewNodeIdPathList extends Api
   handle : ( e ) ->
     userDataFromApi = e.body
 
-    for item in userDataFromApi.allNodeIdPathList
-      query = {}
-      query.collection = 'odse-node-id-path'
-      query.blobId = userDataFromApi.blobId
-      for key , value of item
-        query[ key ] = value
+    for item in userDataFromApi
+      for secondItem in item.allNodeIdPathList
+        query = {}
+        query.collection = 'odse-node-id-path'
+        query.blobId = item.blobId
+        for key , value of secondItem
+          query[ key ] = value
 
-      @db.insert query , ( err , newDoc ) =>
-        return setImmediate @respondToDatabaseError , e , err if err
+        @db.insert query , ( err , newDoc ) =>
+          return setImmediate @respondToDatabaseError , e , err if err
 
-    @success e , 'New node ID path list has been saved successfully.'
+    @success e , 'New node ID path list has been saved successfully(SERVER).'
 
 ###
   class GetNodeIdPathList
